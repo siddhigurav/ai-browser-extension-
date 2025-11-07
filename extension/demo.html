@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AI Assistant Extension Demo</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      display: flex;
+      gap: 20px;
+    }
+    .content {
+      flex: 1;
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .sidebar {
+      width: 350px;
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h1, h2 {
+      color: #333;
+    }
+    p {
+      line-height: 1.6;
+      color: #555;
+    }
+    .code-block {
+      background-color: #f8f8f8;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 15px;
+      font-family: monospace;
+      white-space: pre-wrap;
+      overflow-x: auto;
+    }
+    .highlight {
+      background-color: #ffeb3b;
+      padding: 2px 4px;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+  <h1>AI Assistant Extension Demo</h1>
+  
+  <div class="container">
+    <div class="content">
+      <h2>Sample Article: The Future of Artificial Intelligence</h2>
+      
+      <p>Artificial intelligence (AI) has become one of the most transformative technologies of the 21st century. From virtual assistants like Siri and Alexa to recommendation systems on Netflix and Amazon, AI is increasingly integrated into our daily lives.</p>
+      
+      <p>In the business world, AI is revolutionizing industries through automation, predictive analytics, and intelligent decision-making systems. Companies are leveraging machine learning algorithms to optimize supply chains, personalize customer experiences, and detect fraud.</p>
+      
+      <p>Healthcare is another field where AI is making significant strides. Medical imaging systems powered by deep learning can detect diseases with accuracy comparable to human experts. AI-driven drug discovery is accelerating the development of new treatments, and personalized medicine is becoming more accessible through genetic analysis.</p>
+      
+      <p>However, the rapid advancement of AI also raises important ethical questions. Issues such as algorithmic bias, job displacement, and privacy concerns need to be carefully addressed as we integrate AI more deeply into society.</p>
+      
+      <p>As we look to the future, AI will continue to evolve with advancements in areas like natural language processing, computer vision, and reinforcement learning. The challenge for society is to harness the benefits of AI while mitigating its risks.</p>
+      
+      <h2>Sample Code: Python Function</h2>
+      
+      <div class="code-block">
+def fibonacci(n):
+    """
+    Generate the nth Fibonacci number using recursion.
+    
+    Args:
+        n (int): The position in the Fibonacci sequence
+        
+    Returns:
+        int: The nth Fibonacci number
+    """
+    if n <= 1:
+        return n
+    else:
+        return fibonacci(n-1) + fibonacci(n-2)
+
+# Example usage
+for i in range(10):
+    print(f"Fibonacci({i}) = {fibonacci(i)}")
+      </div>
+      
+      <h2>Key Points to Remember</h2>
+      
+      <ul>
+        <li>AI is transforming multiple industries including healthcare, business, and entertainment</li>
+        <li>Ethical considerations are crucial as AI becomes more prevalent</li>
+        <li>Future advancements will focus on NLP, computer vision, and reinforcement learning</li>
+        <li>Balancing benefits and risks is essential for successful AI integration</li>
+      </ul>
+    </div>
+  </div>
+  
+  <div style="margin-top: 30px; text-align: center; color: #777;">
+    <p>This is a demo page to test the AI Assistant browser extension.</p>
+    <p>Select text, click the extension icon, and try the various features!</p>
+  </div>
+</body>
+</html>

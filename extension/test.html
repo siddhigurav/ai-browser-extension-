@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test AI Assistant Extension</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .container {
+      display: flex;
+      gap: 20px;
+    }
+    .content {
+      flex: 1;
+    }
+    .sidebar {
+      width: 350px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 10px;
+      background-color: #f9f9f9;
+    }
+    textarea {
+      width: 100%;
+      height: 150px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-family: Arial, sans-serif;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .output {
+      background-color: #f0f0f0;
+      padding: 15px;
+      border-radius: 4px;
+      min-height: 100px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Test AI Assistant Extension</h1>
+  
+  <div class="container">
+    <div class="content">
+      <h2>Sample Content</h2>
+      <p>This is a sample article about artificial intelligence and its applications in modern technology.</p>
+      
+      <p>Artificial intelligence (AI) has become one of the most transformative technologies of the 21st century. From virtual assistants like Siri and Alexa to recommendation systems on Netflix and Amazon, AI is increasingly integrated into our daily lives.</p>
+      
+      <p>In the business world, AI is revolutionizing industries through automation, predictive analytics, and intelligent decision-making systems. Companies are leveraging machine learning algorithms to optimize supply chains, personalize customer experiences, and detect fraud.</p>
+      
+      <p>Healthcare is another field where AI is making significant strides. Medical imaging systems powered by deep learning can detect diseases with accuracy comparable to human experts. AI-driven drug discovery is accelerating the development of new treatments, and personalized medicine is becoming more accessible through genetic analysis.</p>
+      
+      <p>However, the rapid advancement of AI also raises important ethical questions. Issues such as algorithmic bias, job displacement, and privacy concerns need to be carefully addressed as we integrate AI more deeply into society.</p>
+      
+      <p>As we look to the future, AI will continue to evolve with advancements in areas like natural language processing, computer vision, and reinforcement learning. The challenge for society is to harness the benefits of AI while mitigating its risks.</p>
+    </div>
+    
+    <div class="sidebar">
+      <h2>AI Assistant</h2>
+      <textarea id="inputText" placeholder="Enter text to analyze...">Artificial intelligence (AI) has become one of the most transformative technologies of the 21st century. From virtual assistants like Siri and Alexa to recommendation systems on Netflix and Amazon, AI is increasingly integrated into our daily lives.
+
+In the business world, AI is revolutionizing industries through automation, predictive analytics, and intelligent decision-making systems. Companies are leveraging machine learning algorithms to optimize supply chains, personalize customer experiences, and detect fraud.
+
+Healthcare is another field where AI is making significant strides. Medical imaging systems powered by deep learning can detect diseases with accuracy comparable to human experts. AI-driven drug discovery is accelerating the development of new treatments, and personalized medicine is becoming more accessible through genetic analysis.</textarea>
+      <div>
+        <button id="summarizeBtn">Summarize</button>
+        <button id="explainBtn">Explain Code</button>
+        <button id="extractBtn">Extract Points</button>
+        <button id="improveBtn">Improve Text</button>
+        <button id="chatBtn">Chat</button>
+      </div>
+      <div class="output">
+        <p id="outputText">Results will appear here...</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Simple test script to simulate extension functionality
+    document.addEventListener('DOMContentLoaded', () => {
+      const inputText = document.getElementById('inputText');
+      const summarizeBtn = document.getElementById('summarizeBtn');
+      const explainBtn = document.getElementById('explainBtn');
+      const extractBtn = document.getElementById('extractBtn');
+      const improveBtn = document.getElementById('improveBtn');
+      const chatBtn = document.getElementById('chatBtn');
+      const outputText = document.getElementById('outputText');
+      
+      // Function to simulate AI responses
+      function simulateAIResponse(task, input) {
+        switch(task) {
+          case 'summarize':
+            return "AI is transforming industries in the 21st century. It's integrated into daily life through virtual assistants and recommendation systems. Businesses use AI for automation and decision-making, while healthcare benefits from medical imaging and drug discovery. Ethical considerations around bias and privacy remain important as AI evolves.";
+          case 'explain':
+            return "This text explains how artificial intelligence is transforming various sectors. It describes applications in daily life (virtual assistants), business (automation, analytics), and healthcare (medical imaging, drug discovery). It also mentions ethical considerations that need to be addressed.";
+          case 'extract':
+            return "Key points:\\n1. AI is a transformative 21st-century technology\\n2. Used in virtual assistants and recommendation systems\\n3. Revolutionizing business through automation\\n4. Advancing healthcare with medical imaging\\n5. Raises ethical questions about bias and privacy";
+          case 'improve':
+            return "Artificial intelligence (AI) stands as one of the most revolutionary technologies of the 21st century. Its integration into our daily lives is evident through virtual assistants like Siri and Alexa, as well as recommendation systems on platforms such as Netflix and Amazon.\\n\\nWithin the business sector, AI is fundamentally transforming industries by enabling automation, predictive analytics, and intelligent decision-making systems. Organizations are harnessing machine learning algorithms to streamline supply chains, customize customer experiences, and identify fraudulent activities.\\n\\nHealthcare represents another domain where AI is achieving remarkable progress. Deep learning-powered medical imaging systems can identify diseases with precision that rivals human experts. Moreover, AI-accelerated drug discovery is expediting the development of novel treatments, while genetic analysis is making personalized medicine increasingly accessible.";
+          case 'chat':
+            return "I can help you understand how AI is transforming different sectors. Would you like me to elaborate on any specific application of AI mentioned in the text?";
+          default:
+            return "This is a simulated response. In a complete implementation, this would provide a more detailed and accurate response based on your input.";
+        }
+      }
+      
+      summarizeBtn.addEventListener('click', () => {
+        outputText.textContent = 'Summarizing...';
+        setTimeout(() => {
+          outputText.textContent = simulateAIResponse('summarize', inputText.value);
+        }, 1000);
+      });
+      
+      explainBtn.addEventListener('click', () => {
+        outputText.textContent = 'Explaining...';
+        setTimeout(() => {
+          outputText.textContent = simulateAIResponse('explain', inputText.value);
+        }, 1000);
+      });
+      
+      extractBtn.addEventListener('click', () => {
+        outputText.textContent = 'Extracting key points...';
+        setTimeout(() => {
+          outputText.textContent = simulateAIResponse('extract', inputText.value);
+        }, 1000);
+      });
+      
+      improveBtn.addEventListener('click', () => {
+        outputText.textContent = 'Improving text...';
+        setTimeout(() => {
+          outputText.textContent = simulateAIResponse('improve', inputText.value);
+        }, 1000);
+      });
+      
+      chatBtn.addEventListener('click', () => {
+        outputText.textContent = 'Chatting...';
+        setTimeout(() => {
+          outputText.textContent = simulateAIResponse('chat', inputText.value);
+        }, 1000);
+      });
+    });
+  </script>
+</body>
+</html>

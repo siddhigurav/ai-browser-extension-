@@ -1,0 +1,11 @@
+{
+  "name": "gemini-ai-assistant-extension",
+  "version": "1.0.0",
+  "description": "Gemini AI Assistant Browser Extension",
+  "main": "index.js",
+  "scripts": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {}
+}
