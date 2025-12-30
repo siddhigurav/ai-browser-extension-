@@ -12,6 +12,7 @@ export function WebPagePanel() {
       <div style="margin-bottom: 15px;">
         <textarea id="webPageOutput" placeholder="Web page content will appear here..." style="width: 100%; height: 150px; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"></textarea>
       </div>
+      <div id="webPageStatus" style="margin-bottom: 15px; color: #f44336; display: none;"></div>
     </div>
   `;
 }

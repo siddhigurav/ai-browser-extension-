@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Token Fix Verification</title>
+</head>
+<body>
+    <h1>Test Token Fix Verification</h1>
+    
+    <h2>Issues Fixed:</h2>
+    <ul>
+        <li>✅ OpenRouter 401 Unauthorized error resolved</li>
+        <li>✅ Free models now work without requiring API tokens</li>
+        <li>✅ Content script connection issues addressed</li>
+    </ul>
+    
+    <h2>Changes Made:</h2>
+    <ol>
+        <li><strong>dev_token.txt</strong> - Created empty file to prevent invalid token errors</li>
+        <li><strong>apiClient.js</strong> - Fixed OpenRouter free model handling to not send any Authorization header</li>
+        <li><strong>background.js</strong> - Ensured free models use null token</li>
+    </ol>
+    
+    <h2>Testing Instructions:</h2>
+    <p>Load the extension in Chrome and test:</p>
+    <ol>
+        <li>AI chat - Send a message and verify you get a response without 401 errors</li>
+        <li>Tools tab - Test each tool and verify no token errors</li>
+        <li>Check console for any remaining errors</li>
+    </ol>
+    
+    <h2>Expected Results:</h2>
+    <ul>
+        <li>No more "OpenRouter endpoint unauthorized (401)" errors</li>
+        <li>All tools should work with free OpenRouter models</li>
+        <li>No "Could not establish connection" errors</li>
+    </ul>
+</body>
+</html>

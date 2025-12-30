@@ -1,124 +1,207 @@
 // extension/sidebar/App.js
 
+// Add a check for extension context validity
+function isExtensionContextValid() {
+  try {
+    return typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id;
+  } catch (e) {
+    return false;
+  }
+}
+
+// Wrapper for chrome.runtime.sendMessage with context validation
+function safeSendMessage(message, callback) {
+  if (!isExtensionContextValid()) {
+    console.warn('Extension context is invalid');
+    if (callback) callback({ error: 'Extension context invalidated' });
+    return;
+  }
+  
+  try {
+    chrome.runtime.sendMessage(message, callback);
+  } catch (error) {
+    console.error('Error sending message:', error);
+    if (callback) callback({ error: 'Failed to send message: ' + error.message });
+  }
+}
+
+// Helper function to clean AI responses
+function cleanAIResponse(text) {
+  if (!text) return '';
+  
+  // Remove extra whitespace and normalize
+  let cleaned = text.trim();
+  
+  // Remove any markdown code block wrappers if present
+  cleaned = cleaned.replace(/^```(?:\w+)?\n?/, '').replace(/\n?```$/, '');
+  
+  // Remove extra newlines (more than 2 in a row)
+  cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
+  
+  return cleaned;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const root = document.getElementById('root');
-  if (root) {
-    // Web Page Content Panel Component
-    function WebPagePanel() {
-      return `
-        <div style="padding: 10px;">
-          <h3 style="color: #9D7CBF;">Web Page Content</h3>
-          <div style="margin-bottom: 15px;">
-            <button id="getPageContentBtn" style="background-color: #5D3A9B; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; width: 100%;">Get Current Page Content</button>
-          </div>
-          <div style="margin-bottom: 15px;">
-            <button id="getSelectedTextBtn" style="background-color: #5D3A9B; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; width: 100%;">Get Selected Text</button>
-          </div>
-          <div style="margin-bottom: 15px;">
-            <textarea id="webPageOutput" placeholder="Web page content will appear here..." style="width: 100%; height: 150px; padding: 8px; border: 1px solid #333; border-radius: 4px; background-color: #1E1E1E; color: #E0E0E0;"></textarea>
-          </div>
-        </div>
-      `;
-    }
-    
-    // PDF Panel Component
-    function PdfPanel() {
-      return `
-        <div style="padding: 10px;">
-          <h3 style="color: #9D7CBF;">PDF Processing</h3>
-          <div style="margin-bottom: 15px;">
-            <input type="file" id="pdfUpload" accept=".pdf" style="width: 100%; padding: 8px; border: 1px solid #333; border-radius: 4px; background-color: #1E1E1E; color: #E0E0E0;">
-          </div>
-          <div style="margin-bottom: 15px;">
-            <button id="processPdfBtn" style="background-color: #5D3A9B; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; width: 100%;">Process PDF</button>
-          </div>
-          <div style="margin-bottom: 15px;">
-            <textarea id="pdfOutput" placeholder="PDF content will appear here..." style="width: 100%; height: 150px; padding: 8px; border: 1px solid #333; border-radius: 4px; background-color: #1E1E1E; color: #E0E0E0;"></textarea>
-          </div>
-          <div style="margin-bottom: 15px;">
-            <input type="text" id="pdfQuestion" placeholder="Ask a question about the PDF..." style="width: 100%; padding: 8px; border: 1px solid #333; border-radius: 4px; margin-bottom: 10px; background-color: #1E1E1E; color: #E0E0E0;">
-            <button id="askPdfBtn" style="background-color: #5D3A9B; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; width: 100%;">Ask About PDF</button>
-          </div>
-        </div>
-      `;
-    }
-    
-    // OCR Panel Component
-    function OcrPanel() {
-      return `
-        <div style="padding: 10px;">
-          <h3 style="color: #9D7CBF;">Image OCR Processing</h3>
-          <div style="margin-bottom: 15px;">
-            <input type="file" id="imageUpload" accept="image/*" style="width: 100%; padding: 8px; border: 1px solid #333; border-radius: 4px; background-color: #1E1E1E; color: #E0E0E0;">
-          </div>
-          <div style="margin-bottom: 15px;">
-            <button id="processImageBtn" style="background-color: #5D3A9B; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; width: 100%;">Process Image</button>
-            <button id="captureScreenshotBtn" style="background-color: #5D3A9B; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 10px;">Capture Screenshot</button>
-          </div>
-          <div style="margin-bottom: 15px;">
-            <textarea id="ocrOutput" placeholder="OCR text will appear here..." style="width: 100%; height: 150px; padding: 8px; border: 1px solid #333; border-radius: 4px; background-color: #1E1E1E; color: #E0E0E0;"></textarea>
-          </div>
-        </div>
-      `;
-    }
-    
+  if (!root) return;
+
+  // Check if we're in a valid extension context
+  if (!isExtensionContextValid()) {
     root.innerHTML = `
-      <div style="font-family: sans-serif; padding: 10px; max-width: 300px; background-color: #121212; color: #E0E0E0;">
-        <h2 style="color: #9D7CBF;">AI Assistant</h2>
-        
-        <!-- Tab navigation -->
-        <div style="margin-bottom: 15px; border-bottom: 1px solid #333;">
-          <button id="textTab" style="background-color: #5D3A9B; color: white; padding: 8px 12px; border: none; border-radius: 4px 4px 0 0; cursor: pointer; margin-right: 5px;">Text</button>
-          <button id="webTab" style="background-color: #2A2A2A; color: #E0E0E0; padding: 8px 12px; border: none; border-radius: 4px 4px 0 0; cursor: pointer; margin-right: 5px;">Web Page</button>
-          <button id="pdfTab" style="background-color: #2A2A2A; color: #E0E0E0; padding: 8px 12px; border: none; border-radius: 4px 4px 0 0; cursor: pointer; margin-right: 5px;">PDF</button>
-          <button id="imageTab" style="background-color: #2A2A2A; color: #E0E0E0; padding: 8px 12px; border: none; border-radius: 4px 4px 0 0; cursor: pointer;">Image</button>
+      <div class="card" style="padding: 20px; text-align: center;">
+        <h2 style="color: #ff6b6b;">Extension Error</h2>
+        <p>The extension context has been invalidated. Please reload the extension.</p>
+        <button id="reloadExtension" class="btn" style="margin-top: 10px;">Reload Extension</button>
+      </div>
+    `;
+    
+    document.getElementById('reloadExtension')?.addEventListener('click', () => {
+      // This won't work in content script context, but we can try
+      if (isExtensionContextValid()) {
+        chrome.runtime.reload();
+      } else {
+        alert('Please reload the extension manually from chrome://extensions/');
+      }
+    });
+    
+    return;
+  }
+
+  function WebPagePanel() {
+    return `
+      <div class="section">
+        <h3 class="small muted">Web Page Content</h3>
+        <div class="spaced">
+          <button id="getPageContentBtn" class="btn full-width">Get Current Page Content</button>
         </div>
-        
-        <!-- Text Input Section -->
-        <div id="textSection">
-          <div style="margin-bottom: 10px;">
-            <textarea id="inputText" placeholder="Enter text here..." style="width: 100%; height: 80px; padding: 8px; border: 1px solid #333; border-radius: 4px; background-color: #1E1E1E; color: #E0E0E0;"></textarea>
-          </div>
+        <div class="spaced">
+          <button id="getSelectedTextBtn" class="btn ghost full-width">Get Selected Text</button>
         </div>
-        
-        <!-- Web Page Content Section -->
-        <div id="webSection" style="display: none;">
-          ${WebPagePanel()}
+        <div>
+          <textarea id="webPageOutput" class="textarea" placeholder="Web page content will appear here..."></textarea>
         </div>
-        
-        <!-- PDF Upload Section -->
-        <div id="pdfSection" style="display: none;">
-          ${PdfPanel()}
+        <div class="spaced">
+          <button id="summarizeWebBtn" class="btn full-width">Summarize Web Content</button>
         </div>
-        
-        <!-- Image Upload Section -->
-        <div id="imageSection" style="display: none;">
-          ${OcrPanel()}
+        <div class="spaced">
+          <button id="explainWebBtn" class="btn full-width">Explain Web Content</button>
         </div>
-        
-        <!-- Action Buttons -->
-        <div style="margin-bottom: 10px;">
-          <button id="summarizeBtn" style="background-color: #5D3A9B; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer;">Summarize</button>
-          <button id="chatBtn" style="background-color: #5D3A9B; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">Chat</button>
-          <button id="explainBtn" style="background-color: #5D3A9B; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; margin-top: 5px; width: 100%;">Explain Code</button>
-        </div>
-        <div style="margin-bottom: 10px;">
-          <button id="extractBtn" style="background-color: #5D3A9B; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; width: 48%;">Extract Points</button>
-          <button id="improveBtn" style="background-color: #5D3A9B; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; margin-left: 4%; width: 48%;">Improve Text</button>
-        </div>
-        
-        <!-- Output Area -->
-        <div style="background-color: #1E1E1E; padding: 10px; border-radius: 4px; min-height: 100px; overflow-y: auto; border: 1px solid #333;">
-          <p id="outputText" style="color: #9D7CBF;">Output will appear here...</p>
+        <div id="webResult" class="sider-output" style="min-height: 100px; max-height: 200px;">
+          <div class="sider-output-placeholder">Web analysis results will appear here...</div>
         </div>
       </div>
     `;
+  }
 
-    // Tab navigation elements
-    const textTab = document.getElementById('textTab');
-    const webTab = document.getElementById('webTab');
-    const pdfTab = document.getElementById('pdfTab');
-    const imageTab = document.getElementById('imageTab');
+  function PdfPanel() {
+    return `
+      <div class="section">
+        <h3 class="small muted">PDF Processing</h3>
+        <div class="spaced">
+          <input type="file" id="pdfUpload" accept=".pdf" class="file" />
+        </div>
+        <div class="spaced">
+          <button id="processPdfBtn" class="btn full-width">Process PDF</button>
+        </div>
+        <div class="spaced">
+          <textarea id="pdfOutput" class="textarea" placeholder="PDF content will appear here..."></textarea>
+        </div>
+        <div>
+          <input type="text" id="pdfQuestion" class="input" placeholder="Ask a question about the PDF..." />
+          <button id="askPdfBtn" class="btn full-width spaced">Ask About PDF</button>
+        </div>
+        <div id="pdfResult" class="sider-output" style="min-height: 100px; max-height: 200px;">
+          <div class="sider-output-placeholder">PDF analysis results will appear here...</div>
+        </div>
+      </div>
+    `;
+  }
+
+  function OcrPanel() {
+    return `
+      <div class="section">
+        <h3 class="small muted">Image OCR Processing</h3>
+        <div class="spaced">
+          <input type="file" id="imageUpload" accept="image/*" class="file" />
+        </div>
+        <div class="spaced area-row">
+          <button id="processImageBtn" class="btn full-width">Process Image</button>
+          <button id="captureScreenshotBtn" class="btn ghost full-width">Capture Screenshot</button>
+        </div>
+        <div>
+          <textarea id="ocrOutput" class="textarea" placeholder="OCR text will appear here..."></textarea>
+        </div>
+        <div class="spaced">
+          <button id="summarizeOcrBtn" class="btn full-width">Summarize OCR Content</button>
+        </div>
+        <div class="spaced">
+          <button id="explainOcrBtn" class="btn full-width">Explain OCR Content</button>
+        </div>
+        <div id="ocrResult" class="sider-output" style="min-height: 100px; max-height: 200px;">
+          <div class="sider-output-placeholder">OCR analysis results will appear here...</div>
+        </div>
+      </div>
+    `;
+  }
+
+  root.innerHTML = `
+    <div class="sider-container">
+      <div class="sider-header">
+        <div class="sider-logo">
+          <div class="sider-logo-icon">🤖</div>
+          <div class="sider-logo-text">
+            <div class="sider-title">AI Assistant</div>
+            <div class="sider-subtitle">Powered by GROQ</div>
+          </div>
+        </div>
+        <div class="sider-tabs">
+          <button id="textTab" class="sider-tab active">Text</button>
+          <button id="webTab" class="sider-tab">Web</button>
+          <button id="pdfTab" class="sider-tab">PDF</button>
+          <button id="imageTab" class="sider-tab">Image</button>
+        </div>
+      </div>
+
+      <div id="textSection" class="sider-section">
+        <textarea id="inputText" class="sider-textarea" placeholder="Enter text here..."></textarea>
+        <div class="sider-actions">
+          <button id="summarizeBtn" class="sider-action-btn">
+            <span class="sider-action-icon">📋</span>
+            <span class="sider-action-text">Summarize</span>
+          </button>
+          <button id="chatBtn" class="sider-action-btn">
+            <span class="sider-action-icon">💬</span>
+            <span class="sider-action-text">Chat</span>
+          </button>
+          <button id="explainBtn" class="sider-action-btn">
+            <span class="sider-action-icon">🔍</span>
+            <span class="sider-action-text">Explain</span>
+          </button>
+          <button id="extractBtn" class="sider-action-btn">
+            <span class="sider-action-icon">📌</span>
+            <span class="sider-action-text">Extract</span>
+          </button>
+          <button id="improveBtn" class="sider-action-btn">
+            <span class="sider-action-icon">✨</span>
+            <span class="sider-action-text">Improve</span>
+          </button>
+        </div>
+        <div class="sider-output" id="outputText">
+          <div class="sider-output-placeholder">Results will appear here...</div>
+        </div>
+      </div>
+
+      <div id="webSection" class="sider-section" style="display:none">${WebPagePanel()}</div>
+      <div id="pdfSection" class="sider-section" style="display:none">${PdfPanel()}</div>
+      <div id="imageSection" class="sider-section" style="display:none">${OcrPanel()}</div>
+    </div>
+  `;
+
+  // Tab navigation elements
+  const textTab = document.getElementById('textTab');
+  const webTab = document.getElementById('webTab');
+  const pdfTab = document.getElementById('pdfTab');
+  const imageTab = document.getElementById('imageTab');
     
     // Section elements
     const textSection = document.getElementById('textSection');
@@ -128,11 +211,15 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Text input elements
     const inputText = document.getElementById('inputText');
+    const outputText = document.getElementById('outputText');
     
     // Web page elements
     const getPageContentBtn = document.getElementById('getPageContentBtn');
     const getSelectedTextBtn = document.getElementById('getSelectedTextBtn');
     const webPageOutput = document.getElementById('webPageOutput');
+    const summarizeWebBtn = document.getElementById('summarizeWebBtn');
+    const explainWebBtn = document.getElementById('explainWebBtn');
+    const webResult = document.getElementById('webResult');
     
     // PDF elements
     const pdfUpload = document.getElementById('pdfUpload');
@@ -140,12 +227,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const pdfOutput = document.getElementById('pdfOutput');
     const pdfQuestion = document.getElementById('pdfQuestion');
     const askPdfBtn = document.getElementById('askPdfBtn');
+    const pdfResult = document.getElementById('pdfResult');
     
     // Image elements
     const imageUpload = document.getElementById('imageUpload');
     const processImageBtn = document.getElementById('processImageBtn');
     const captureScreenshotBtn = document.getElementById('captureScreenshotBtn');
     const ocrOutput = document.getElementById('ocrOutput');
+    const summarizeOcrBtn = document.getElementById('summarizeOcrBtn');
+    const explainOcrBtn = document.getElementById('explainOcrBtn');
+    const ocrResult = document.getElementById('ocrResult');
     
     // Action buttons
     const summarizeBtn = document.getElementById('summarizeBtn');
@@ -154,82 +245,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const extractBtn = document.getElementById('extractBtn');
     const improveBtn = document.getElementById('improveBtn');
     
-    // Output element
-    const outputText = document.getElementById('outputText');
-    
     // Current active content source
     let currentContentSource = 'text';
     let currentContent = '';
     
     // Tab navigation functionality
-    textTab.addEventListener('click', () => {
-      textTab.style.backgroundColor = '#5D3A9B';
-      webTab.style.backgroundColor = '#2A2A2A';
-      pdfTab.style.backgroundColor = '#2A2A2A';
-      imageTab.style.backgroundColor = '#2A2A2A';
-      textSection.style.display = 'block';
-      webSection.style.display = 'none';
-      pdfSection.style.display = 'none';
-      imageSection.style.display = 'none';
-      currentContentSource = 'text';
-      currentContent = inputText.value;
-    });
+    function activateTab(selected) {
+      [textTab, webTab, pdfTab, imageTab].forEach(t => t.classList.remove('active'));
+      selected.classList.add('active');
+      textSection.style.display = selected === textTab ? 'block' : 'none';
+      webSection.style.display = selected === webTab ? 'block' : 'none';
+      pdfSection.style.display = selected === pdfTab ? 'block' : 'none';
+      imageSection.style.display = selected === imageTab ? 'block' : 'none';
+      currentContentSource = selected === textTab ? 'text' : selected === webTab ? 'web' : selected === pdfTab ? 'pdf' : 'image';
+      currentContent = getCurrentContent();
+    }
+
+    textTab.addEventListener('click', () => activateTab(textTab));
+    webTab.addEventListener('click', () => activateTab(webTab));
+    pdfTab.addEventListener('click', () => activateTab(pdfTab));
+    imageTab.addEventListener('click', () => activateTab(imageTab));
     
-    webTab.addEventListener('click', () => {
-      textTab.style.backgroundColor = '#2A2A2A';
-      webTab.style.backgroundColor = '#5D3A9B';
-      pdfTab.style.backgroundColor = '#2A2A2A';
-      imageTab.style.backgroundColor = '#2A2A2A';
-      textSection.style.display = 'none';
-      webSection.style.display = 'block';
-      pdfSection.style.display = 'none';
-      imageSection.style.display = 'none';
-      currentContentSource = 'web';
-    });
-    
-    pdfTab.addEventListener('click', () => {
-      textTab.style.backgroundColor = '#2A2A2A';
-      webTab.style.backgroundColor = '#2A2A2A';
-      pdfTab.style.backgroundColor = '#5D3A9B';
-      imageTab.style.backgroundColor = '#2A2A2A';
-      textSection.style.display = 'none';
-      webSection.style.display = 'none';
-      pdfSection.style.display = 'block';
-      imageSection.style.display = 'none';
-      currentContentSource = 'pdf';
-    });
-    
-    imageTab.addEventListener('click', () => {
-      textTab.style.backgroundColor = '#2A2A2A';
-      webTab.style.backgroundColor = '#2A2A2A';
-      pdfTab.style.backgroundColor = '#2A2A2A';
-      imageTab.style.backgroundColor = '#5D3A9B';
-      textSection.style.display = 'none';
-      webSection.style.display = 'none';
-      pdfSection.style.display = 'none';
-      imageSection.style.display = 'block';
-      currentContentSource = 'image';
-    });
-    
-    // New processText function as requested
-    async function processText(task) {
-      const text = getCurrentContent() || window.getSelection().toString();
-    
-      try {
-        const res = await fetch("http://127.0.0.1:5000/process", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text, task })
-        });
-    
-        const data = await res.json();
-        document.getElementById("outputText").innerText =
-          data.output || "⚠️ No response received. Check your Flask server.";
-      } catch (error) {
-        console.error('Error calling process API:', error);
-        document.getElementById("outputText").innerText =
-          "⚠️ Error connecting to AI service. Check your Flask server and Hugging Face token.";
-      }
+    // Function to show output in the UI
+    function showOutput(element, text) {
+      // Clean the output text
+      const cleanedText = cleanAIResponse(text);
+      element.innerHTML = `<div class="sider-output-content">${cleanedText}</div>`;
     }
     
     // Function to get current content based on active tab
@@ -267,143 +308,314 @@ document.addEventListener('DOMContentLoaded', () => {
       currentContent = content;
     }
     
-    // Get page content functionality
-    getPageContentBtn.addEventListener('click', async () => {
-      outputText.textContent = 'Getting page content...';
+    // New processText function as requested
+    async function processText(task, outputElement) {
+      const text = getCurrentContent() || window.getSelection().toString();
+    
+      if (!text) {
+        showOutput(outputElement, 'Please enter or select some text first.');
+        return;
+      }
+      
+      showOutput(outputElement, 'Processing...');
+      
       try {
-        chrome.runtime.sendMessage({ type: "GET_PAGE_CONTENT" }, (response) => {
-          if (response && response.type === "PAGE_CONTENT") {
-            webPageOutput.value = response.content;
-            outputText.textContent = `Page content extracted successfully. Length: ${response.length} characters.`;
-            currentContent = response.content;
-          } else {
-            outputText.textContent = 'Failed to extract page content.';
-          }
+        // Send message to background script to handle AI request
+        const response = await new Promise((resolve) => {
+          safeSendMessage({
+            type: "AI_REQUEST",
+            payload: {
+              task: task,
+              text: text
+            }
+          }, (r) => resolve(r));
         });
+        
+        if (!response) {
+          showOutput(outputElement, 'No response from background service.');
+          return;
+        }
+        
+        if (!response.success) {
+          showOutput(outputElement, 'Error: ' + (response.error || 'Unknown error'));
+          return;
+        }
+        
+        // Display the response
+        const cleanedText = cleanAIResponse(response.data.text || JSON.stringify(response.data).slice(0, 2000));
+        showOutput(outputElement, cleanedText);
       } catch (error) {
-        outputText.textContent = 'Error getting page content.';
+        console.error('Error calling AI service:', error);
+        showOutput(outputElement, 'Error connecting to AI service: ' + error.message);
+      }
+    }
+    
+    // Get page content functionality
+    getPageContentBtn?.addEventListener('click', async () => {
+      showOutput(webResult, 'Getting page content...');
+      try {
+        const response = await new Promise((resolve) => {
+          safeSendMessage({ type: "GET_PAGE_CONTENT" }, (r) => resolve(r));
+        });
+        
+        if (response && response.type === "PAGE_CONTENT") {
+          webPageOutput.value = response.content;
+          showOutput(webResult, `Page content extracted successfully. Length: ${response.length} characters.`);
+          currentContent = response.content;
+        } else {
+          showOutput(webResult, response?.error || 'Failed to extract page content.');
+        }
+      } catch (error) {
+        showOutput(webResult, 'Error getting page content: ' + error.message);
         console.error('Error getting page content:', error);
       }
     });
     
     // Get selected text functionality
-    getSelectedTextBtn.addEventListener('click', async () => {
-      outputText.textContent = 'Getting selected text...';
+    getSelectedTextBtn?.addEventListener('click', async () => {
+      showOutput(webResult, 'Getting selected text...');
       try {
-        chrome.runtime.sendMessage({ type: "GET_SELECTED_TEXT" }, (response) => {
-          if (response && response.type === "SELECTED_TEXT" && response.content) {
-            webPageOutput.value = response.content;
-            outputText.textContent = `Selected text extracted successfully. Length: ${response.length} characters.`;
-            currentContent = response.content;
-          } else {
-            outputText.textContent = response?.message || 'No text selected.';
-          }
+        const response = await new Promise((resolve) => {
+          safeSendMessage({ type: "GET_SELECTED_TEXT" }, (r) => resolve(r));
         });
+        
+        if (response && response.type === "SELECTED_TEXT" && response.content) {
+          webPageOutput.value = response.content;
+          showOutput(webResult, `Selected text extracted successfully. Length: ${response.length} characters.`);
+          currentContent = response.content;
+        } else {
+          showOutput(webResult, response?.message || 'No text selected.');
+        }
       } catch (error) {
-        outputText.textContent = 'Error getting selected text.';
+        showOutput(webResult, 'Error getting selected text: ' + error.message);
         console.error('Error getting selected text:', error);
       }
     });
     
-    // Process PDF functionality
-    processPdfBtn.addEventListener('click', async () => {
+    // Web page actions
+    summarizeWebBtn?.addEventListener('click', () => processText("summarize", webResult));
+    explainWebBtn?.addEventListener('click', () => processText("explain_code", webResult));
+    
+    // Process PDF functionality with improved error handling
+    processPdfBtn?.addEventListener('click', async () => {
       const file = pdfUpload.files[0];
       if (!file) {
-        outputText.textContent = 'Please select a PDF file first.';
+        showOutput(pdfResult, 'Please select a PDF file first.');
         return;
       }
       
-      outputText.textContent = 'Processing PDF...';
+      // Check file size
+      if (file.size > 20 * 1024 * 1024) { // 20MB limit
+        showOutput(pdfResult, 'PDF file is too large. Please select a file smaller than 20MB.');
+        return;
+      }
+      
+      showOutput(pdfResult, 'Processing PDF...');
       try {
+        // Try client-side PDF.js extraction first
+        if (typeof window.__extractPdfText === 'function') {
+          showOutput(pdfResult, 'Extracting text from PDF using client-side processing...');
+          try {
+            const arrayBuffer = await new Promise((res, rej) => {
+              const reader = new FileReader();
+              reader.onload = () => res(reader.result);
+              reader.onerror = rej;
+              reader.readAsArrayBuffer(file);
+            });
+            
+            const extractedText = await window.__extractPdfText(arrayBuffer);
+            if (extractedText && extractedText.trim().length) {
+              // Limit text length to prevent issues
+              const limitedText = extractedText.length > 100000 ? extractedText.substring(0, 100000) + '... [text truncated]' : extractedText;
+              pdfOutput.value = limitedText;
+              showOutput(pdfResult, `PDF text extracted successfully. Extracted ${limitedText.length} characters.`);
+              currentContent = limitedText;
+              return;
+            }
+          } catch (clientError) {
+            console.error('Client-side PDF extraction failed:', clientError);
+            showOutput(pdfResult, 'Client-side PDF extraction failed: ' + clientError.message + '. Trying server-side processing...');
+          }
+        }
+        
+        // Fallback to server-side processing
         const formData = new FormData();
         formData.append('file', file);
         
-        // Simulate PDF processing
-        setTimeout(() => {
-          const simulatedText = "This is simulated text extracted from the PDF. In a complete implementation, this would contain the actual text content of the PDF document.";
-          pdfOutput.value = simulatedText;
-          outputText.textContent = `PDF processed successfully. Extracted ${simulatedText.length} characters.`;
-          currentContent = simulatedText;
-        }, 1500);
+        const response = await fetch('http://localhost:5000/api/pdf/extract', {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Server responded with status ${response.status}`);
+        }
+        
+        const data = await response.json();
+        // Concatenate text from all pages
+        const extractedText = data.pages.map(page => page.text).join('\n\n');
+        // Limit text length to prevent issues
+        const limitedText = extractedText.length > 100000 ? extractedText.substring(0, 100000) + '... [text truncated]' : extractedText;
+        pdfOutput.value = limitedText;
+        showOutput(pdfResult, `PDF processed successfully. Extracted ${limitedText.length} characters.`);
+        currentContent = limitedText;
       } catch (error) {
-        outputText.textContent = 'Error processing PDF.';
+        showOutput(pdfResult, 'Error processing PDF: ' + error.message);
         console.error('Error processing PDF:', error);
       }
     });
     
     // Ask PDF question functionality
-    askPdfBtn.addEventListener('click', async () => {
+    askPdfBtn?.addEventListener('click', async () => {
       const question = pdfQuestion.value;
       const context = pdfOutput.value;
       
       if (!question) {
-        outputText.textContent = 'Please enter a question.';
+        showOutput(pdfResult, 'Please enter a question.');
         return;
       }
       
       if (!context) {
-        outputText.textContent = 'Please process a PDF first.';
+        showOutput(pdfResult, 'Please process a PDF first.');
         return;
       }
       
-      outputText.textContent = 'Answering question...';
+      showOutput(pdfResult, 'Answering question...');
       try {
-        // Simulate question answering
-        setTimeout(() => {
-          const simulatedAnswer = `This is a simulated answer to your question: "${question}". In a complete implementation, this would use AI to analyze the PDF content and provide a relevant answer.`;
-          outputText.textContent = simulatedAnswer;
-        }, 1500);
+        const response = await fetch('http://localhost:5000/api/pdf/answer', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ question, context })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Server responded with status ${response.status}`);
+        }
+        
+        const data = await response.json();
+        const cleanedAnswer = cleanAIResponse(data.answer || "No answer generated.");
+        showOutput(pdfResult, cleanedAnswer);
       } catch (error) {
-        outputText.textContent = 'Error answering question.';
+        showOutput(pdfResult, 'Error answering question: ' + error.message);
         console.error('Error answering question:', error);
       }
     });
     
-    // Process Image functionality
-    processImageBtn.addEventListener('click', async () => {
+    // Process Image functionality with improved error handling
+    processImageBtn?.addEventListener('click', async () => {
       const file = imageUpload.files[0];
       if (!file) {
-        outputText.textContent = 'Please select an image file first.';
+        showOutput(ocrResult, 'Please select an image file first.');
         return;
       }
       
-      outputText.textContent = 'Processing image...';
+      // Check file size
+      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+        showOutput(ocrResult, 'Image file is too large. Please select a file smaller than 10MB.');
+        return;
+      }
+      
+      showOutput(ocrResult, 'Processing image...');
       try {
-        // Simulate image processing
-        setTimeout(() => {
-          const simulatedText = "This is simulated text extracted from the image using OCR. In a complete implementation, this would contain the actual text content of the image.";
-          ocrOutput.value = simulatedText;
-          outputText.textContent = `Image processed successfully. Extracted ${simulatedText.length} characters.`;
-          currentContent = simulatedText;
-        }, 1500);
+        // Try client-side OCR first if available
+        if (typeof window.__loadTesseract === 'function') {
+          showOutput(ocrResult, 'Performing OCR using client-side processing...');
+          try {
+            const Tesseract = await window.__loadTesseract();
+            const dataUrl = await new Promise((res, rej) => {
+              const reader = new FileReader();
+              reader.onload = () => res(reader.result);
+              reader.onerror = rej;
+              reader.readAsDataURL(file);
+            });
+            
+            // Use Tesseract.js recognize
+            const res = await Tesseract.recognize(dataUrl, 'eng');
+            const text = (res && res.data && res.data.text) ? res.data.text : '';
+            
+            if (text && text.trim().length) {
+              // Limit text length to prevent issues
+              const limitedText = text.length > 50000 ? text.substring(0, 50000) + '... [text truncated]' : text;
+              ocrOutput.value = limitedText;
+              showOutput(ocrResult, `Image processed successfully. Extracted ${limitedText.length} characters.`);
+              currentContent = limitedText;
+              return;
+            }
+          } catch (ocrError) {
+            console.error('Client-side OCR failed:', ocrError);
+            showOutput(ocrResult, 'Client-side OCR failed: ' + ocrError.message + '. Trying server-side processing...');
+          }
+        }
+        
+        // Fallback to server-side processing
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const response = await fetch('http://localhost:5000/api/ocr/image', {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Server responded with status ${response.status}`);
+        }
+        
+        const data = await response.json();
+        const ocrText = data.text || "No text extracted from image.";
+        // Limit text length to prevent issues
+        const limitedText = ocrText.length > 50000 ? ocrText.substring(0, 50000) + '... [text truncated]' : ocrText;
+        ocrOutput.value = limitedText;
+        showOutput(ocrResult, `Image processed successfully. Extracted ${limitedText.length} characters.`);
+        currentContent = limitedText;
       } catch (error) {
-        outputText.textContent = 'Error processing image.';
+        showOutput(ocrResult, 'Error processing image: ' + error.message);
         console.error('Error processing image:', error);
       }
     });
     
+    // OCR actions
+    summarizeOcrBtn?.addEventListener('click', () => processText("summarize", ocrResult));
+    explainOcrBtn?.addEventListener('click', () => processText("explain_code", ocrResult));
+    
     // Capture Screenshot functionality
-    captureScreenshotBtn.addEventListener('click', async () => {
-      outputText.textContent = 'Capturing screenshot...';
+    captureScreenshotBtn?.addEventListener('click', async () => {
+      showOutput(ocrResult, 'Capturing screenshot...');
       try {
-        // Simulate screenshot capture
-        setTimeout(() => {
-          const simulatedText = "This is simulated text extracted from the screenshot using OCR. In a complete implementation, this would capture and process a screenshot of the current page.";
-          ocrOutput.value = simulatedText;
-          outputText.textContent = `Screenshot captured and processed successfully. Extracted ${simulatedText.length} characters.`;
-          currentContent = simulatedText;
-        }, 1500);
+        // In a real implementation, this would capture the current page
+        // For now, we'll simulate with a placeholder
+        const simulatedImageData = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==';
+        
+        const response = await fetch('http://localhost:5000/api/ocr/screenshot', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ image_base64: simulatedImageData.split(',')[1] })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Server responded with status ${response.status}`);
+        }
+        
+        const data = await response.json();
+        const ocrText = data.text || "No text extracted from screenshot.";
+        // Limit text length to prevent issues
+        const limitedText = ocrText.length > 50000 ? ocrText.substring(0, 50000) + '... [text truncated]' : ocrText;
+        ocrOutput.value = limitedText;
+        showOutput(ocrResult, `Screenshot captured and processed successfully. Extracted ${limitedText.length} characters.`);
+        currentContent = limitedText;
       } catch (error) {
-        outputText.textContent = 'Error capturing screenshot.';
+        showOutput(ocrResult, 'Error capturing screenshot: ' + error.message);
         console.error('Error capturing screenshot:', error);
       }
     });
     
     // Bind all buttons to use the new processText function
-    summarizeBtn.onclick = () => processText("summarize");
-    chatBtn.onclick = () => processText("chat");
-    explainBtn.onclick = () => processText("explain_code");
-    extractBtn.onclick = () => processText("extract_points");
-    improveBtn.onclick = () => processText("improve_text");
-  }
+    if (summarizeBtn) summarizeBtn.onclick = () => processText("summarize", outputText);
+    if (chatBtn) chatBtn.onclick = () => processText("chat", outputText);
+    if (explainBtn) explainBtn.onclick = () => processText("explain_code", outputText);
+    if (extractBtn) extractBtn.onclick = () => processText("extract_points", outputText);
+    if (improveBtn) improveBtn.onclick = () => processText("improve_text", outputText);
 });

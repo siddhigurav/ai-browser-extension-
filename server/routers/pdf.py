@@ -1,6 +1,8 @@
 import os
 import tempfile
 from flask import Blueprint, jsonify, request
+from pdfminer.high_level import extract_text
+from pdfminer.layout import LAParams
 
 pdf_bp = Blueprint('pdf', __name__)
 
@@ -27,15 +29,18 @@ def extract_pdf():
             file.save(tmp_file.name)
             tmp_path = tmp_file.name
             
-        # Process the PDF (in a real implementation, this would use pdfminer or PyMuPDF)
-        # For now, we'll simulate the extraction
+        # Process the PDF using pdfminer
         try:
-            # Simulate PDF processing
+            # Extract text from PDF with default layout analysis parameters
+            laparams = LAParams()
+            text = extract_text(tmp_path, laparams=laparams)
+            
+            # Split text into pages (this is a simplification - pdfminer doesn't directly provide per-page extraction)
+            # For now, we'll treat the entire text as one page
             pages = []
-            # In a real implementation, this would extract actual text from the PDF
             pages.append({
                 'page': 1,
-                'text': 'This is sample text extracted from the PDF document. In a complete implementation, this would contain the actual text content of the PDF.',
+                'text': text.strip(),
                 'tables': []
             })
             

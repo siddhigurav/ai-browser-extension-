@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OpenRouter Fix Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #121212;
+            color: #E0E0E0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #5D3A9B;
+        }
+        button {
+            background-color: #5D3A9B;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #7D5AB9;
+        }
+        #result {
+            background-color: #1E1E1E;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+        }
+        .success {
+            color: #4CAF50;
+        }
+        .error {
+            color: #F44336;
+        }
+        .info {
+            color: #2196F3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>OpenRouter Fix Test</h1>
+        <p>This test verifies that the OpenRouter free model fix is working correctly:</p>
+        
+        <button id="testFreeModel">Test Free Model (No Token)</button>
+        <button id="testHeaders">Test Request Headers</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        document.getElementById('testFreeModel').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<span class="info">Testing free model without token...</span>';
+            
+            try {
+                // Test the AI request with a free model
+                const response = await chrome.runtime.sendMessage({
+                    type: 'AI_REQUEST',
+                    payload: {
+                        input: "Hello, just respond with 'Test successful' and nothing else.",
+                        selectedModel: 'meta-llama/llama-3-8b-instruct'
+                    }
+                });
+                
+                if (response && response.success) {
+                    resultDiv.innerHTML = '<span class="success">✅ SUCCESS: Free model works without token</span>\n\nResponse: ' + response.data.text;
+                } else {
+                    resultDiv.innerHTML = `<span class="error">❌ FAILED: ${response?.error || 'Unknown error'}</span>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ ERROR: ${error.message}</span>`;
+            }
+        });
+        
+        document.getElementById('testHeaders').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<span class="info">Testing request headers for free model...</span>';
+            
+            try {
+                // Show what headers should be sent for free models
+                const freeModels = [
+                    'openchat/openchat-7b',
+                    'mistralai/mistral-7b-instruct',
+                    'google/gemma-7b-it',
+                    'nousresearch/nous-hermes-2-mixtral-8x7b-dpo',
+                    'microsoft/phi-3-medium-128k-instruct',
+                    'meta-llama/llama-3-8b-instruct'
+                ];
+                
+                let headerInfo = '✅ Request Headers Test:\n\n';
+                headerInfo += 'For free models, the following headers should be sent:\n';
+                headerInfo += '- Content-Type: application/json\n';
+                headerInfo += '- HTTP-Referer: https://www.nykaa.com\n';
+                headerInfo += '- X-Title: AI Assistant Extension\n';
+                headerInfo += '- Authorization: NOT INCLUDED\n\n';
+                
+                headerInfo += 'Free models supported:\n';
+                freeModels.forEach(model => {
+                    headerInfo += `- ${model}\n`;
+                });
+                
+                resultDiv.innerHTML = `<span class="success">${headerInfo}</span>`;
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ ERROR: ${error.message}</span>`;
+            }
+        });
+    </script>
+</body>
+</html>

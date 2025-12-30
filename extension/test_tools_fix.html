@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Tools Fix</title>
+</head>
+<body>
+    <h1>Test Tools Fix</h1>
+    
+    <h2>Issues Fixed:</h2>
+    <ul>
+        <li>✅ Summarize tool now accepts user input instead of auto-summarizing page</li>
+        <li>✅ Explain tool now works with user-provided code/text</li>
+        <li>✅ Rewrite tool now asks for instructions on how to rephrase</li>
+        <li>✅ API issues resolved with proper token handling</li>
+    </ul>
+    
+    <h2>Changes Made:</h2>
+    <ol>
+        <li><strong>popup.js</strong> - Updated tool functions to use user input panels</li>
+        <li><strong>popup.html</strong> - Added input panels for each tool</li>
+        <li><strong>apiClient.js</strong> - Fixed OpenRouter free model handling</li>
+        <li><strong>dev_token.txt</strong> - Created empty file to prevent token errors</li>
+    </ol>
+    
+    <h2>Testing Instructions:</h2>
+    <p>Load the extension in Chrome and test:</p>
+    <ol>
+        <li>Click on "Summarize Page" tool - should show input panel</li>
+        <li>Enter text and click "Summarize" - should get a summary</li>
+        <li>Click on "Explain Selection" tool - should show input panel</li>
+        <li>Enter code/text and click "Explain" - should get an explanation</li>
+        <li>Click on "Rewrite Content" tool - should show input panel</li>
+        <li>Enter text and instructions, then click "Rewrite" - should get rewritten text</li>
+        <li>AI chat should work without 401 errors</li>
+    </ol>
+</body>
+</html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Test Site Information Feature</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .instructions {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .step {
+            margin: 15px 0;
+            padding: 10px;
+            background: #f9f9f9;
+            border-left: 4px solid #2196f3;
+        }
+        .note {
+            background: #fff3e0;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+            border-left: 4px solid #ff9800;
+        }
+        code {
+            background: #eee;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Test Site Information Feature</h1>
+        
+        <div class="instructions">
+            <h2>Testing Instructions</h2>
+            <p>This page will help you test the newly added Site Information feature in your Chrome extension.</p>
+        </div>
+        
+        <div class="step">
+            <h3>Step 1: Load the Extension</h3>
+            <p>Make sure your extension is loaded in Chrome:</p>
+            <ol>
+                <li>Open Chrome and go to <code>chrome://extensions</code></li>
+                <li>Enable "Developer mode"</li>
+                <li>Click "Load unpacked" and select your extension folder</li>
+                <li>Ensure the extension is enabled</li>
+            </ol>
+        </div>
+        
+        <div class="step">
+            <h3>Step 2: Test the Site Information Feature</h3>
+            <p>Try out the new Site Information feature:</p>
+            <ol>
+                <li>Navigate to any website (e.g., <a href="https://www.nykaa.com" target="_blank">Nykaa</a>)</li>
+                <li>Click on the extension icon in the toolbar</li>
+                <li>In the sidebar, click on the "Site Info" tab (ℹ️ icon)</li>
+                <li>Click the "Analyze Current Site" button</li>
+                <li>Observe the site information displayed</li>
+            </ol>
+        </div>
+        
+        <div class="step">
+            <h3>Step 3: Verify Functionality</h3>
+            <p>Check that the following features work correctly:</p>
+            <ul>
+                <li>Site overview with trust score and safety status</li>
+                <li>Domain details including age and traffic estimate</li>
+                <li>Security analysis information</li>
+                <li>Detailed analysis points</li>
+            </ul>
+        </div>
+        
+        <div class="note">
+            <h3>Note</h3>
+            <p>If you encounter any issues:</p>
+            <ul>
+                <li>Check the browser console for errors (Ctrl+Shift+J)</li>
+                <li>Verify all files were updated correctly</li>
+                <li>Ensure the WHOIS APIs are accessible (they may have rate limits)</li>
+            </ul>
+        </div>
+        
+        <div class="step">
+            <h3>Expected Results</h3>
+            <p>When you analyze a site, you should see:</p>
+            <ul>
+                <li>A trust score between 0-100 with color coding</li>
+                <li>Safety status (Likely Safe, Caution, Suspicious, High Risk)</li>
+                <li>Domain age information</li>
+                <li>Traffic estimate</li>
+                <li>Detailed analysis points about the site</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

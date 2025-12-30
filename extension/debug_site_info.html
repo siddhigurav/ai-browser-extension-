@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Debug Site Information</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .debug-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #f9f9f9;
+        }
+        .debug-output {
+            background: #000;
+            color: #00ff00;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .error {
+            color: #f44336;
+            background: #ffebee;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Debug Site Information Feature</h1>
+        
+        <div class="debug-section">
+            <h2>Test Site Analysis</h2>
+            <p>Click the button below to test the site analysis feature:</p>
+            <button id="testBtn">Test Site Analysis</button>
+            <div id="result" class="debug-output">Results will appear here...</div>
+        </div>
+        
+        <div class="debug-section">
+            <h2>Console Output</h2>
+            <p>Open the browser console (Ctrl+Shift+J) to see detailed debug information.</p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('testBtn').addEventListener('click', async function() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = 'Testing site analysis...\n';
+            
+            try {
+                // Get current tab URL
+                const url = 'https://www.nykaa.com';
+                resultDiv.textContent += `Testing with URL: ${url}\n`;
+                
+                // Send message to background script
+                resultDiv.textContent += 'Sending ANALYZE_SITE message...\n';
+                
+                chrome.runtime.sendMessage(
+                    { type: 'ANALYZE_SITE', payload: { url } },
+                    function(response) {
+                        resultDiv.textContent += `\nResponse received:\n${JSON.stringify(response, null, 2)}\n`;
+                        
+                        if (response && response.success) {
+                            resultDiv.textContent += '\nSite analysis successful!\n';
+                            resultDiv.textContent += `Trust Score: ${response.data.trustScore}/100\n`;
+                            resultDiv.textContent += `Safety Status: ${response.data.safetyStatus}\n`;
+                            resultDiv.textContent += `Domain Age: ${response.data.domainAge}\n`;
+                            resultDiv.textContent += `Traffic Estimate: ${response.data.trafficEstimate}\n`;
+                            
+                            if (response.data.analysisDetails) {
+                                resultDiv.textContent += '\nAnalysis Details:\n';
+                                response.data.analysisDetails.forEach(detail => {
+                                    resultDiv.textContent += `- ${detail}\n`;
+                                });
+                            }
+                        } else {
+                            resultDiv.textContent += `\nError: ${response?.error || 'Unknown error'}\n`;
+                        }
+                    }
+                );
+            } catch (error) {
+                resultDiv.textContent += `\nError: ${error.message}\n`;
+                console.error('Test error:', error);
+            }
+        });
+    </script>
+</body>
+</html>

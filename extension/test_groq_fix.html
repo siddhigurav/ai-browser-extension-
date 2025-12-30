@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GROQ Provider Fix Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #121212;
+            color: #E0E0E0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #5D3A9B;
+        }
+        button {
+            background-color: #5D3A9B;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #7D5AB9;
+        }
+        #result {
+            background-color: #1E1E1E;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+        }
+        .success {
+            color: #4CAF50;
+        }
+        .error {
+            color: #F44336;
+        }
+        .info {
+            color: #2196F3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>GROQ Provider Fix Test</h1>
+        <p>This test verifies that the GROQ provider fix is working correctly:</p>
+        
+        <button id="testOpenRouter">Test OpenRouter (Free)</button>
+        <button id="testGROQ">Test GROQ (Should Fail Gracefully)</button>
+        <button id="testModelSelection">Test Model Selection</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        document.getElementById('testOpenRouter').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<span class="info">Testing OpenRouter free model...</span>';
+            
+            try {
+                const response = await chrome.runtime.sendMessage({
+                    type: 'AI_REQUEST',
+                    payload: {
+                        input: "Hello, world!",
+                        model: 'meta-llama/llama-3-8b-instruct',
+                        provider: 'openrouter'
+                    }
+                });
+                
+                if (response && response.success) {
+                    resultDiv.innerHTML = '<span class="success">PASS: OpenRouter free model works</span>\n\nResponse: ' + response.data.text;
+                } else {
+                    resultDiv.innerHTML = `<span class="error">FAIL: ${response?.error || 'Unknown error'}</span>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">ERROR: ${error.message}</span>`;
+            }
+        });
+        
+        document.getElementById('testGROQ').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<span class="info">Testing GROQ model (should fail gracefully)...</span>';
+            
+            try {
+                const response = await chrome.runtime.sendMessage({
+                    type: 'AI_REQUEST',
+                    payload: {
+                        input: "Hello, world!",
+                        model: 'llama-3.1-8b-instant',
+                        provider: 'groq'
+                    }
+                });
+                
+                if (response && response.success) {
+                    resultDiv.innerHTML = '<span class="success">PASS: GROQ model works</span>\n\nResponse: ' + response.data.text;
+                } else {
+                    resultDiv.innerHTML = `<span class="error">EXPECTED FAIL: ${response?.error || 'Unknown error'}</span>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">EXPECTED ERROR: ${error.message}</span>`;
+            }
+        });
+        
+        document.getElementById('testModelSelection').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<span class="info">Testing model selection...</span>';
+            
+            try {
+                // Test with selectedModel parameter
+                const response = await chrome.runtime.sendMessage({
+                    type: 'AI_REQUEST',
+                    payload: {
+                        input: "Hello, world!",
+                        selectedModel: 'meta-llama/llama-3-8b-instruct'
+                    }
+                });
+                
+                if (response && response.success) {
+                    resultDiv.innerHTML = '<span class="success">PASS: Model selection works</span>\n\nResponse: ' + response.data.text;
+                } else {
+                    resultDiv.innerHTML = `<span class="error">FAIL: ${response?.error || 'Unknown error'}</span>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">ERROR: ${error.message}</span>`;
+            }
+        });
+    </script>
+</body>
+</html>

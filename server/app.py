@@ -26,7 +26,9 @@ app.register_blueprint(speech_bp, url_prefix='/api/speech')
 app.register_blueprint(translate_bp, url_prefix='/api/translate')
 
 # Hugging Face Integration
-HF_TOKEN = "your_huggingface_token"  # https://huggingface.co/settings/tokens
+# Get Hugging Face token from environment variable or config
+import os
+HF_TOKEN = os.environ.get('HF_TOKEN') or 'YOUR_ACTUAL_HUGGINGFACE_TOKEN_HERE'  # https://huggingface.co/settings/tokens
 
 MODEL_MAP = {
     "summarize": "facebook/bart-large-cnn",
@@ -55,26 +57,35 @@ def process():
     prompt = prompts.get(task, text)
 
     try:
+        # Validate token before making request
+        if not HF_TOKEN or HF_TOKEN == 'YOUR_ACTUAL_HUGGINGFACE_TOKEN_HERE':
+            return jsonify({
+                "output": "Error: Hugging Face token not configured. Please set HF_TOKEN environment variable or update app.py"
+            }), 500
+        
         response = requests.post(
-            f"https://api-inference.huggingface.co/models/{model}",
+            f"https://router.huggingface.co/models/{model}",
             headers={"Authorization": f"Bearer {HF_TOKEN}"},
             json={"inputs": prompt}
         )
         
         # Check if the request was successful
         if response.status_code != 200:
+            error_msg = f"Error: Hugging Face API returned status {response.status_code}. Response: {response.text}"
+            print(error_msg)  # Log for debugging
             return jsonify({
-                "output": f"Error: Hugging Face API returned status {response.status_code}. Response: {response.text}"
+                "output": error_msg
             }), 500
         
         result = response.json()
-        output = result[0]["generated_text"] if isinstance(result, list) else str(result)
+        output = result[0]["generated_text"] if isinstance(result, list) and len(result) > 0 and "generated_text" in result[0] else str(result)
     except Exception as e:
-        output = f"Error: {str(e)}"
+        error_msg = f"Error: {str(e)}"
         # Log the error for debugging
         print(f"Error processing request: {str(e)}")
         import traceback
         traceback.print_exc()
+        return jsonify({"output": error_msg}), 500
 
     return jsonify({"output": output})
 

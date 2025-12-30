@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Extension Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #121212;
+            color: #E0E0E0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #5D3A9B;
+        }
+        button {
+            background-color: #5D3A9B;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #7D5AB9;
+        }
+        #result {
+            background-color: #1E1E1E;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Extension Test Page</h1>
+        <p>Click the buttons below to test different features of the extension:</p>
+        
+        <button id="testChat">Test Chat</button>
+        <button id="testSummarize">Test Summarize</button>
+        <button id="testSiteInfo">Test Site Info</button>
+        <button id="testPdf">Test PDF Processing</button>
+        <button id="testOcr">Test OCR</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        document.getElementById('testChat').addEventListener('click', async () => {
+            try {
+                const response = await chrome.runtime.sendMessage({
+                    type: 'AI_REQUEST',
+                    payload: {
+                        input: "What is the capital of France?",
+                        model: "meta-llama/llama-3-8b-instruct"
+                    }
+                });
+                
+                if (response && response.success) {
+                    document.getElementById('result').textContent = response.data.text;
+                } else {
+                    document.getElementById('result').textContent = "Error: " + (response?.error || "Unknown error");
+                }
+            } catch (error) {
+                document.getElementById('result').textContent = "Error: " + error.message;
+            }
+        });
+
+        document.getElementById('testSummarize').addEventListener('click', async () => {
+            try {
+                const response = await chrome.runtime.sendMessage({
+                    type: 'SUMMARIZE_REQUEST',
+                    payload: {
+                        text: "Artificial intelligence (AI) is intelligence demonstrated by machines, in contrast to the natural intelligence displayed by humans and animals. Leading AI textbooks define the field as the study of \"intelligent agents\": any device that perceives its environment and takes actions that maximize its chance of successfully achieving its goals."
+                    }
+                });
+                
+                if (response && response.success) {
+                    document.getElementById('result').textContent = response.data.text;
+                } else {
+                    document.getElementById('result').textContent = "Error: " + (response?.error || "Unknown error");
+                }
+            } catch (error) {
+                document.getElementById('result').textContent = "Error: " + error.message;
+            }
+        });
+
+        document.getElementById('testSiteInfo').addEventListener('click', async () => {
+            try {
+                const tabs = await chrome.tabs.query({active: true, currentWindow: true});
+                const tab = tabs[0];
+                
+                if (!tab) {
+                    document.getElementById('result').textContent = "Error: No active tab found";
+                    return;
+                }
+                
+                const response = await chrome.runtime.sendMessage({
+                    type: 'ANALYZE_SITE',
+                    payload: {
+                        url: tab.url
+                    }
+                });
+                
+                if (response && response.success) {
+                    document.getElementById('result').textContent = JSON.stringify(response.data, null, 2);
+                } else {
+                    document.getElementById('result').textContent = "Error: " + (response?.error || "Unknown error");
+                }
+            } catch (error) {
+                document.getElementById('result').textContent = "Error: " + error.message;
+            }
+        });
+    </script>
+</body>
+</html>

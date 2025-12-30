@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Stored Token</title>
+</head>
+<body>
+    <h1>Clear Stored Token</h1>
+    <button id="clearToken">Clear Stored Token</button>
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('clearToken').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('result');
+            try {
+                // Clear all possible stored tokens
+                await chrome.storage.sync.remove(['apiToken', 'provider', 'model', 'groqEndpoint', 'hfModel']);
+                await chrome.storage.local.remove(['apiToken', 'provider', 'model', 'groqEndpoint', 'hfModel']);
+                
+                resultDiv.innerHTML = '<p style="color: green;">✅ All stored tokens cleared successfully!</p>';
+                
+                // Reload the extension to apply changes
+                resultDiv.innerHTML += '<p>Reloading extension...</p>';
+                setTimeout(() => {
+                    chrome.runtime.reload();
+                }, 1000);
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="color: red;">❌ Error: ${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>

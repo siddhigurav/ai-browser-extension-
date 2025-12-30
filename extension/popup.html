@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Assistant</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    :root {
+      --primary: #5D3A9B;
+      --primary-hover: #4a2e7d;
+      --secondary: #6b7280;
+      --secondary-hover: #4b5563;
+      --background: #121212;
+      --surface: #1E1E1E;
+      --border: #333333;
+      --text-primary: #E0E0E0;
+      --text-secondary: #A0A0A0;
+      --error: #ef4444;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --disabled: #555555;
+      --info: #3b82f6;
+      --user-bubble: #5D3A9B;
+      --assistant-bubble: #2D2D2D;
+    }
+
+    /* Reset and base styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      width: 360px;
+      min-height: 600px;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      background-color: var(--background);
+      color: var(--text-primary);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    
+    /* Header Styles */
+    .header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      background-color: var(--surface);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .logo {
+      width: 32px;
+      height: 32px;
+      background-color: var(--primary);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    .header-info {
+      flex: 1;
+    }
+    
+    .header h1 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 0 0 4px 0;
+    }
+    
+    .header p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin: 0;
+    }
+    
+    /* Tab Navigation */
+    .tabs {
+      display: flex;
+      background-color: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      position: sticky;
+      top: 72px; /* Height of header */
+      z-index: 99;
+    }
+    
+    .tab {
+      flex: 1;
+      padding: 12px 0;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+      border-bottom: 2px solid transparent;
+    }
+    
+    .tab.active {
+      color: var(--primary);
+      border-bottom: 2px solid var(--primary);
+    }
+    
+    .tab:hover:not(.active) {
+      color: var(--text-primary);
+      background-color: rgba(93, 58, 155, 0.1);
+    }
+    
+    /* Main Content Area */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    
+    /* Tab Content */
+    .tab-content {
+      display: none;
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    /* Chat Container */
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+    
+    /* Messages Area */
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding-bottom: 16px;
+    }
+    
+    /* Message Bubbles */
+    .message {
+      max-width: 85%;
+      padding: 12px 16px;
+      border-radius: 18px;
+      line-height: 1.5;
+      position: relative;
+    }
+    
+    .user-message {
+      align-self: flex-end;
+      background-color: var(--user-bubble);
+      border-bottom-right-radius: 4px;
+      color: white;
+    }
+    
+    .assistant-message {
+      align-self: flex-start;
+      background-color: var(--assistant-bubble);
+      border-bottom-left-radius: 4px;
+      color: var(--text-primary);
+    }
+    
+    .message-header {
+      font-weight: 600;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+    
+    .user-message .message-header {
+      color: #d1c4e9;
+    }
+    
+    .assistant-message .message-header {
+      color: #bb86fc;
+    }
+    
+    /* Input Area */
+    .input-area {
+      padding: 16px;
+      border-top: 1px solid var(--border);
+      background-color: var(--surface);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex-shrink: 0;
+      position: sticky;
+      bottom: 0;
+      z-index: 98;
+    }
+    
+    .input-group {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .input-group textarea {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background-color: var(--background);
+      color: var(--text-primary);
+      resize: none;
+      min-height: 24px;
+      max-height: 120px;
+      font-family: inherit;
+      font-size: 14px;
+    }
+    
+    .input-group button {
+      align-self: flex-end;
+      padding: 12px 16px;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 18px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background-color 0.2s;
+    }
+    
+    .input-group button:hover:not(:disabled) {
+      background-color: var(--primary-hover);
+    }
+    
+    .input-group button:disabled {
+      background-color: var(--disabled);
+      cursor: not-allowed;
+    }
+    
+    /* Tools Grid */
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+    }
+    
+    .tool-card {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .tool-card:hover {
+      background-color: rgba(93, 58, 155, 0.1);
+      border-color: var(--primary);
+    }
+    
+    .tool-card h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+    
+    .tool-card p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+    
+    /* Model Selection */
+    .model-selection {
+      margin: 16px 0;
+    }
+    
+    .model-selection select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background-color: var(--background);
+      color: var(--text-primary);
+      font-size: 14px;
+    }
+    
+    /* Status Bar */
+    .status {
+      padding: 8px 16px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      background-color: var(--surface);
+      border-top: 1px solid var(--border);
+      text-align: center;
+      flex-shrink: 0;
+      position: sticky;
+      bottom: 0;
+      z-index: 97;
+    }
+    
+    /* Typing Indicator */
+    .typing-indicator {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      background-color: var(--assistant-bubble);
+      border-radius: 18px;
+      align-self: flex-start;
+      margin-bottom: 16px;
+      width: 80px;
+    }
+    
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--text-secondary);
+      border-radius: 50%;
+      margin: 0 2px;
+      animation: typing 1.4s infinite ease-in-out;
+    }
+    
+    .typing-dot:nth-child(1) { animation-delay: 0s; }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    
+    @keyframes typing {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-5px); }
+    }
+    
+    /* Error Message */
+    .error {
+      padding: 12px 16px;
+      background-color: rgba(239, 68, 68, 0.1);
+      border: 1px solid var(--error);
+      border-radius: 8px;
+      color: var(--error);
+      margin-bottom: 16px;
+      font-size: 14px;
+    }
+    
+    /* Site Info */
+    .site-info {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+    
+    .site-info-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    
+    .site-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background-color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+    
+    .site-details h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 0 0 4px 0;
+    }
+    
+    .site-details p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin: 0;
+    }
+    
+    .site-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+    }
+    
+    .stat-card {
+      background-color: rgba(93, 58, 155, 0.1);
+      border-radius: 8px;
+      padding: 12px;
+    }
+    
+    .stat-card h4 {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin: 0 0 4px 0;
+    }
+    
+    .stat-card p {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 0;
+    }
+    
+    /* Loading Spinner */
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">AI</div>
+    <div class="header-info">
+      <h1>AI Assistant</h1>
+      <p>Your intelligent browsing companion</p>
+    </div>
+  </div>
+  
+  <div class="tabs">
+    <div class="tab active" data-tab="chat">💬 Chat</div>
+    <div class="tab" data-tab="tools">🛠️ Tools</div>
+    <div class="tab" data-tab="settings">⚙️ Settings</div>
+  </div>
+  
+  <div class="main-content">
+    <!-- Chat Tab -->
+    <div class="tab-content active" id="chat-tab">
+      <div class="chat-container">
+        <div class="messages" id="messages">
+          <div class="message assistant-message">
+            <div class="message-header">Assistant</div>
+            <div class="message-content">Hello! I'm your AI assistant. How can I help you today?</div>
+          </div>
+        </div>
+        
+        <div class="input-area">
+          <div class="input-group">
+            <textarea id="userInput" placeholder="Type your message here..." rows="1"></textarea>
+            <button id="sendButton">
+              <span class="send-text">Send</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Tools Tab -->
+    <div class="tab-content" id="tools-tab">
+      <div class="section-title">🔍 Page Analysis</div>
+      <div class="tools-grid">
+        <div class="tool-card" id="summarizePage">
+          <h3>📄 Summarize Page</h3>
+          <p>Get a concise summary of the current webpage content</p>
+        </div>
+        
+        <div class="tool-card" id="explainSelection">
+          <h3>📝 Explain Selection</h3>
+          <p>Explain the selected text in simple terms</p>
+        </div>
+        
+        <div class="tool-card" id="analyzeSite">
+          <h3>🌐 Analyze Site</h3>
+          <p>Check website safety, trust score, and domain information</p>
+        </div>
+        
+        <div class="tool-card" id="rewriteContent">
+          <h3>🔄 Rewrite Content</h3>
+          <p>Improve or rephrase selected text</p>
+        </div>
+      </div>
+      
+      <!-- Summarize Panel -->
+      <div id="summarize-panel" style="display: none; margin-top: 16px;">
+        <div class="section-title">📄 Summarize Text</div>
+        <div class="input-group" style="flex-direction: column; gap: 12px;">
+          <textarea id="summarizeContent" placeholder="Enter text to summarize..." rows="4"></textarea>
+          <div style="display: flex; gap: 8px;">
+            <button id="submitSummarize" style="flex: 1;">Summarize</button>
+            <button id="cancelSummarize" style="flex: 1;" onclick="document.getElementById('summarize-panel').style.display='none'">Cancel</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Explain Panel -->
+      <div id="explain-panel" style="display: none; margin-top: 16px;">
+        <div class="section-title">📝 Explain Code/Text</div>
+        <div class="input-group" style="flex-direction: column; gap: 12px;">
+          <textarea id="explainContent" placeholder="Enter code or text to explain..." rows="4"></textarea>
+          <div style="display: flex; gap: 8px;">
+            <button id="submitExplain" style="flex: 1;">Explain</button>
+            <button id="cancelExplain" style="flex: 1;" onclick="document.getElementById('explain-panel').style.display='none'">Cancel</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Rewrite Panel -->
+      <div id="rewrite-panel" style="display: none; margin-top: 16px;">
+        <div class="section-title">🔄 Rewrite Content</div>
+        <div class="input-group" style="flex-direction: column; gap: 12px;">
+          <textarea id="rewriteContentInput" placeholder="Enter text to rewrite..." rows="3"></textarea>
+          <textarea id="rewriteInstructions" placeholder="Enter rewrite instructions (e.g., 'Make it more formal', 'Shorten it', etc.)" rows="2"></textarea>
+          <div style="display: flex; gap: 8px;">
+            <button id="submitRewrite" style="flex: 1;">Rewrite</button>
+            <button id="cancelRewrite" style="flex: 1;" onclick="document.getElementById('rewrite-panel').style.display='none'">Cancel</button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="section-title" style="margin-top: 24px;">📎 File Processing</div>
+      <div class="tools-grid">
+        <div class="tool-card" id="processPDF">
+          <h3>📑 Process PDF</h3>
+          <p>Extract text from PDF documents</p>
+        </div>
+        
+        <div class="tool-card" id="processImage">
+          <h3>🖼️ Process Image</h3>
+          <p>Extract text from images using OCR</p>
+        </div>
+      </div>
+      
+      <div id="siteInfoContainer"></div>
+    </div>
+    
+    <!-- Settings Tab -->
+    <div class="tab-content" id="settings-tab">
+      <div class="section-title">🤖 AI Model</div>
+      <div class="model-selection">
+        <select id="modelSelect">
+          <option value="meta-llama/llama-3-8b-instruct">Llama 3 8B (Free)</option>
+          <option value="openchat/openchat-7b">OpenChat 7B (Free)</option>
+          <option value="mistralai/mistral-7b-instruct">Mistral 7B (Free)</option>
+          <option value="google/gemma-7b-it">Gemma 7B (Free)</option>
+          <option value="nousresearch/nous-hermes-2-mixtral-8x7b-dpo">Nous Mixtral 8x7B (Free)</option>
+          <option value="microsoft/phi-3-medium-128k-instruct">Phi-3 Medium (Free)</option>
+          
+          <!-- GROQ Models -->
+          <optgroup label="GROQ Models">
+            <option value="llama-3.1-8b-instant">Llama 3.1 8B Instant</option>
+            <option value="llama-3.1-70b-versatile">Llama 3.1 70B Versatile</option>
+            <option value="llama-3.2-1b-preview">Llama 3.2 1B Preview</option>
+            <option value="llama-3.2-3b-preview">Llama 3.2 3B Preview</option>
+            <option value="llama-3.2-11b-vision-preview">Llama 3.2 11B Vision</option>
+            <option value="llama-3.2-90b-vision-preview">Llama 3.2 90B Vision</option>
+            <option value="llama-3.3-70b">Llama 3.3 70B</option>
+            <option value="mixtral-8x7b-32768">Mixtral 8x7B</option>
+            <option value="gemma-7b-it">Gemma 7B</option>
+            <option value="gemma2-9b-it">Gemma 2 9B</option>
+          </optgroup>
+          
+          <!-- Hugging Face Models -->
+          <optgroup label="Hugging Face Models">
+            <option value="gpt2">GPT-2</option>
+            <option value="facebook/opt-1.3b">OPT 1.3B</option>
+            <option value="facebook/opt-6.7b">OPT 6.7B</option>
+            <option value="google/flan-t5-small">FLAN-T5 Small</option>
+            <option value="google/flan-t5-base">FLAN-T5 Base</option>
+            <option value="google/flan-t5-large">FLAN-T5 Large</option>
+            <option value="google/flan-t5-xl">FLAN-T5 XL</option>
+            <option value="google/flan-t5-xxl">FLAN-T5 XXL</option>
+            <option value="EleutherAI/gpt-j-6b">GPT-J 6B</option>
+            <option value="EleutherAI/gpt-neo-2.7B">GPT-Neo 2.7B</option>
+            <option value="EleutherAI/gpt-neox-20b">GPT-NeoX 20B</option>
+          </optgroup>
+          
+          <!-- OpenAI Models -->
+          <optgroup label="OpenAI Models">
+            <option value="gpt-4o-mini">GPT-4o Mini</option>
+            <option value="gpt-4o">GPT-4o</option>
+            <option value="gpt-4-turbo">GPT-4 Turbo</option>
+            <option value="gpt-4">GPT-4</option>
+            <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+          </optgroup>
+          
+          <!-- Developer Models -->
+          <optgroup label="Developer Models">
+            <option value="nova-2-lite">Nova 2 Lite</option>
+            <option value="trinity-mini">Trinity Mini</option>
+            <option value="olmo-3-32b-think">OLMo 3 32B Think</option>
+            <option value="nemotron-nano-12b-2-vl">Nemotron Nano 12B 2 VL</option>
+            <option value="gpt-oss-20b">GPT OSS 20B</option>
+            <option value="gemma-3n-2b">Gemma 3N 2B</option>
+            <option value="deepseek-r1t2-chimera">DeepSeek R1T2 Chimera</option>
+            <option value="gemma-3n-4b">Gemma 3N 4B</option>
+            <option value="deepseek-r1t-chimera">DeepSeek R1T Chimera</option>
+            <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+          </optgroup>
+        </select>
+      </div>
+      
+      <div class="section-title" style="margin-top: 24px;">ℹ️ About</div>
+      <div style="font-size: 14px; line-height: 1.6; color: var(--text-secondary);">
+        <p>This extension provides AI-powered assistance for your browsing experience.</p>
+        <p>Features include:</p>
+        <ul style="margin: 12px 0; padding-left: 20px;">
+          <li>Chat with AI</li>
+          <li>Summarize web pages</li>
+          <li>Explain code and text</li>
+          <li>Rewrite content</li>
+          <li>Analyze website safety</li>
+          <li>Process PDF documents</li>
+          <li>Extract text from images</li>
+        </ul>
+        <p>To use premium models, configure your API keys in the extension options.</p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="status" id="status" role="status" aria-live="polite">Ready</div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>

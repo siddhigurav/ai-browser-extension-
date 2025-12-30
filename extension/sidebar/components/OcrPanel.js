@@ -13,6 +13,7 @@ export function OcrPanel() {
       <div style="margin-bottom: 15px;">
         <textarea id="ocrOutput" placeholder="OCR text will appear here..." style="width: 100%; height: 150px; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"></textarea>
       </div>
+      <div id="ocrStatus" style="margin-bottom: 15px; color: #f44336; display: none;"></div>
     </div>
   `;
 }

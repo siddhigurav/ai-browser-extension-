@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Verify Token Fix</title>
+</head>
+<body>
+    <h1>Verify Token Fix</h1>
+    
+    <h2>Issue Fixed:</h2>
+    <p>✅ OpenRouter 401 Unauthorized error resolved</p>
+    
+    <h2>Changes Made:</h2>
+    <ol>
+        <li><strong>dev_token.txt</strong> - Created empty file to prevent invalid token errors</li>
+        <li><strong>background.js</strong> - Ensures free models use null token</li>
+        <li><strong>apiClient.js</strong> - Properly handles free models without Authorization header</li>
+    </ol>
+    
+    <h2>Expected Result:</h2>
+    <p>All tools should now work with free OpenRouter models without requiring API tokens.</p>
+</body>
+</html>

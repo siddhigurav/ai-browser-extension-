@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>AI Assistant Options</title>
+    <link rel="stylesheet" href="options.css">
+  </head>
+  <body>
+    <h2>AI Assistant Options</h2>
+    
+    <div class="note" id="keyNote">
+      Note: This extension supports OpenRouter API keys. Leave blank to use free OpenRouter models (no API key required).
+    </div>
+    
+    <div class="model-section">
+      <h3>API Key (optional)</h3>
+      <label>Provider
+        <select id="providerSelect">
+          <option value="">Auto (detect from token or model)</option>
+          <option value="openrouter">OpenRouter</option>
+          <option value="openai">OpenAI</option>
+          <option value="huggingface">Hugging Face</option>
+          <option value="groq">GROQ</option>
+        </select>
+      </label>
+      <label>API Key
+        <input id="apiKeyInput" placeholder="Enter API key (leave blank to use free models)" />
+      </label>
+      <div class="button-row">
+        <button id="saveBtn">Save key</button>
+        <button id="clearKeyBtn" class="btn-clear">Clear key</button>
+      </div>
+      <div class="note">Your API key will be stored using Chrome extension storage. Only provide keys you control.</div>
+      <div id="detectedProvider" class="note detected-provider"></div>
+      <div id="validationMessage" class="note validation-message"></div>
+    </div>
+    
+    <div class="model-section">
+      <h3>Model Selection</h3>
+      <label>Select Model
+        <select id="modelSelect">
+          <!-- OpenRouter Free Models -->
+          <optgroup label="OpenRouter Free Models">
+            <option value="openchat/openchat-7b">OpenChat 7B (Free)</option>
+            <option value="mistralai/mistral-7b-instruct">Mistral 7B Instruct (Free)</option>
+            <option value="google/gemma-7b-it">Gemma 7B IT (Free)</option>
+            <option value="nousresearch/nous-hermes-2-mixtral-8x7b-dpo">Nous Hermes 2 Mixtral 8x7B (Free)</option>
+            <option value="microsoft/phi-3-medium-128k-instruct">Phi-3 Medium 128K (Free)</option>
+            <option value="meta-llama/llama-3-8b-instruct">Llama 3 8B Instruct (Free)</option>
+          </optgroup>
+        </select>
+      </label>
+    </div>
+    
+    <div class="save-model-wrap">
+      <button id="saveModelBtn" class="btn-save-model">Save Model</button>
+    </div>
+    <div id="status"></div>
+    <script src="options.js"></script>
+  </body>
+</html>

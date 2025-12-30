@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Client Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #121212;
+            color: #E0E0E0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #5D3A9B;
+        }
+        button {
+            background-color: #5D3A9B;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #7D5AB9;
+        }
+        #result {
+            background-color: #1E1E1E;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            background-color: #1E1E1E;
+            color: #E0E0E0;
+            border: 1px solid #5D3A9B;
+            border-radius: 5px;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>API Client Test</h1>
+        <p>Test the API client functionality:</p>
+        
+        <textarea id="inputText" placeholder="Enter text to process...">What is the capital of France?</textarea>
+        
+        <button id="testOpenRouter">Test OpenRouter (Free)</button>
+        <button id="testGROQ">Test GROQ (Requires Token)</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script type="module">
+        // Import the API client
+        import { callModel } from './api/apiClient.js';
+        
+        document.getElementById('testOpenRouter').addEventListener('click', async () => {
+            try {
+                const inputText = document.getElementById('inputText').value;
+                const resultDiv = document.getElementById('result');
+                
+                resultDiv.textContent = 'Testing OpenRouter free model...';
+                
+                const payload = {
+                    input: inputText,
+                    model: 'meta-llama/llama-3-8b-instruct',
+                    provider: 'openrouter'
+                };
+                
+                const response = await callModel(payload, ''); // Empty token for free model
+                
+                if (response && response.text) {
+                    resultDiv.textContent = 'Response:\n' + response.text;
+                } else {
+                    resultDiv.textContent = 'Unexpected response format: ' + JSON.stringify(response);
+                }
+            } catch (error) {
+                document.getElementById('result').textContent = 'Error: ' + error.message;
+            }
+        });
+        
+        document.getElementById('testGROQ').addEventListener('click', async () => {
+            try {
+                const inputText = document.getElementById('inputText').value;
+                const resultDiv = document.getElementById('result');
+                
+                resultDiv.textContent = 'Testing GROQ model (requires token)...';
+                
+                const payload = {
+                    input: inputText,
+                    model: 'llama-3.1-8b-instant',
+                    provider: 'groq'
+                };
+                
+                // This should fail without a token
+                const response = await callModel(payload, '');
+                
+                if (response && response.text) {
+                    resultDiv.textContent = 'Response:\n' + response.text;
+                } else {
+                    resultDiv.textContent = 'Unexpected response format: ' + JSON.stringify(response);
+                }
+            } catch (error) {
+                document.getElementById('result').textContent = 'Expected error (no token): ' + error.message;
+            }
+        });
+    </script>
+</body>
+</html>

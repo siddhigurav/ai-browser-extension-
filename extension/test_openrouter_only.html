@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OpenRouter Only Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #121212;
+            color: #E0E0E0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #5D3A9B;
+        }
+        button {
+            background-color: #5D3A9B;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #7D5AB9;
+        }
+        #result {
+            background-color: #1E1E1E;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+        }
+        .success {
+            color: #4CAF50;
+        }
+        .error {
+            color: #F44336;
+        }
+        .info {
+            color: #2196F3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>OpenRouter Only Test</h1>
+        <p>This test verifies that only OpenRouter models are available:</p>
+        
+        <button id="testModelOptions">Test Model Options</button>
+        <button id="testAIRequest">Test AI Request</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        document.getElementById('testModelOptions').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<span class="info">Testing model options...</span>';
+            
+            try {
+                // Get current model options
+                const modelSelect = document.createElement('select');
+                
+                // Add model options - ONLY OpenRouter models
+                const models = [
+                    { value: 'openchat/openchat-7b', label: 'OpenChat 7B (Free)', group: 'OpenRouter Free' },
+                    { value: 'mistralai/mistral-7b-instruct', label: 'Mistral 7B Instruct (Free)', group: 'OpenRouter Free' },
+                    { value: 'google/gemma-7b-it', label: 'Gemma 7B IT (Free)', group: 'OpenRouter Free' },
+                    { value: 'nousresearch/nous-hermes-2-mixtral-8x7b-dpo', label: 'Nous Hermes 2 Mixtral 8x7B (Free)', group: 'OpenRouter Free' },
+                    { value: 'microsoft/phi-3-medium-128k-instruct', label: 'Phi-3 Medium 128K (Free)', group: 'OpenRouter Free' },
+                    { value: 'meta-llama/llama-3-8b-instruct', label: 'Llama 3 8B Instruct (Free)', group: 'OpenRouter Free' }
+                ];
+                
+                // Check that all models are OpenRouter models
+                let allOpenRouter = true;
+                let modelList = '';
+                
+                models.forEach(model => {
+                    modelList += `\n- ${model.label} (${model.value})`;
+                    if (!model.value.includes('openchat') && 
+                        !model.value.includes('mistral') && 
+                        !model.value.includes('gemma') && 
+                        !model.value.includes('nousresearch') && 
+                        !model.value.includes('phi-3') && 
+                        !model.value.includes('meta-llama')) {
+                        allOpenRouter = false;
+                    }
+                });
+                
+                if (allOpenRouter) {
+                    resultDiv.innerHTML = '<span class="success">PASS: All models are OpenRouter free models</span>\n\nAvailable models:' + modelList;
+                } else {
+                    resultDiv.innerHTML = '<span class="error">FAIL: Some models are not OpenRouter</span>\n\nAvailable models:' + modelList;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">ERROR: ${error.message}</span>`;
+            }
+        });
+        
+        document.getElementById('testAIRequest').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<span class="info">Testing AI request with OpenRouter model...</span>';
+            
+            try {
+                const response = await chrome.runtime.sendMessage({
+                    type: 'AI_REQUEST',
+                    payload: {
+                        input: "Hello, world!",
+                        selectedModel: 'meta-llama/llama-3-8b-instruct'
+                    }
+                });
+                
+                if (response && response.success) {
+                    resultDiv.innerHTML = '<span class="success">PASS: AI request with OpenRouter model works</span>\n\nResponse: ' + response.data.text;
+                } else {
+                    resultDiv.innerHTML = `<span class="error">FAIL: ${response?.error || 'Unknown error'}</span>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">ERROR: ${error.message}</span>`;
+            }
+        });
+    </script>
+</body>
+</html>

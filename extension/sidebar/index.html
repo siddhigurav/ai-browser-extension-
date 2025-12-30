@@ -1,19 +1,145 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-  <title>AI Assistant</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      width: 350px;
-      min-height: 400px;
-      font-family: Arial, sans-serif;
-    }
-  </style>
-</head>
-<body>
-  <div id="root"></div>
-  <script src="./App.js"></script>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>AI Assistant Sidebar</title>
+  </head>
+  <body>
+    <div id="ai-sidebar" class="ai-sidebar" aria-hidden="false">
+      <div class="ai-dock">
+        <nav class="ai-nav">
+          <button data-panel="chat" class="nav-btn active" title="Chat">💬</button>
+          <button data-panel="summaries" class="nav-btn" title="Summaries">📝</button>
+          <button data-panel="explain" class="nav-btn" title="Explain">🔍</button>
+          <button data-panel="pdf" class="nav-btn" title="PDF">📄</button>
+          <button data-panel="web" class="nav-btn" title="Webpage">🌐</button>
+          <button data-panel="ocr" class="nav-btn" title="OCR">📷</button>
+          <button data-panel="site" class="nav-btn" title="Site Info">ℹ️</button>
+        </nav>
+        <div class="ai-fab" id="ai-fab">✦</div>
+      </div>
+
+      <div class="ai-panel">
+        <header class="ai-header">
+          <div class="ai-title">AI Assistant</div>
+          <div class="ai-controls">
+            <button id="ai-collapse">_</button>
+            <button id="ai-close">×</button>
+          </div>
+        </header>
+
+        <main class="ai-body" id="ai-body">
+          <div id="panel-chat" class="panel active">
+            <div class="messages" id="messages">
+              <div class="msg ai">Hello! I'm your AI Assistant. How can I help you today?</div>
+            </div>
+            <div class="input-row">
+              <textarea id="messageInput" placeholder="Message AI..." rows="1"></textarea>
+              <button id="sendBtn" class="btn">Send</button>
+            </div>
+          </div>
+          <div id="panel-summaries" class="panel">
+            <div class="section">
+              <h3>Text Summarization</h3>
+              <textarea id="summaryInput" class="textarea" placeholder="Enter text to summarize..."></textarea>
+              <div class="action-buttons">
+                <button id="summarizeBtn" class="btn full-width">Summarize Text</button>
+              </div>
+              <div id="summaryOutput" class="output">Summary will appear here...</div>
+            </div>
+          </div>
+          <div id="panel-explain" class="panel">
+            <div class="section">
+              <h3>Code Explanation</h3>
+              <textarea id="codeInput" class="textarea" placeholder="Enter code to explain..."></textarea>
+              <div class="action-buttons">
+                <button id="explainBtn" class="btn full-width">Explain Code</button>
+              </div>
+              <div id="explainOutput" class="output">Explanation will appear here...</div>
+            </div>
+          </div>
+          <div id="panel-pdf" class="panel">
+            <div class="section">
+              <h3>PDF Processing</h3>
+              <input type="file" id="pdfFile" accept=".pdf" class="file" />
+              <div class="action-buttons">
+                <button id="processPdf" class="btn full-width">Process PDF</button>
+              </div>
+              <textarea id="pdfOutput" class="textarea" placeholder="PDF content will appear here..."></textarea>
+              <div style="margin-top: 15px;">
+                <input type="text" id="pdfQuestion" class="input" placeholder="Ask a question about the PDF..." />
+                <button id="askPdfBtn" class="btn full-width">Ask About PDF</button>
+              </div>
+              <div id="pdfAnswer" class="output">Answer will appear here...</div>
+            </div>
+          </div>
+          <div id="panel-web" class="panel">
+            <div class="section">
+              <h3>Web Page Content</h3>
+              <div class="action-buttons">
+                <button id="getPageContentBtn" class="btn full-width">Get Current Page Content</button>
+                <button id="getSelectedTextBtn" class="btn ghost full-width">Get Selected Text</button>
+              </div>
+              <textarea id="webPageOutput" class="textarea" placeholder="Web page content will appear here..."></textarea>
+              <div class="action-buttons">
+                <button id="summarizeWebBtn" class="btn">Summarize</button>
+                <button id="explainWebBtn" class="btn">Explain</button>
+              </div>
+              <div id="webPageResult" class="output">Results will appear here...</div>
+            </div>
+          </div>
+          <div id="panel-ocr" class="panel">
+            <div class="section">
+              <h3>Image OCR Processing</h3>
+              <input type="file" id="imageFile" accept="image/*" class="file" />
+              <div class="action-buttons">
+                <button id="processImage" class="btn full-width">Process Image</button>
+                <button id="captureScreenshot" class="btn ghost full-width">Capture Screenshot</button>
+              </div>
+              <textarea id="ocrOutput" class="textarea" placeholder="OCR text will appear here..."></textarea>
+              <div class="action-buttons">
+                <button id="summarizeOcrBtn" class="btn">Summarize</button>
+                <button id="explainOcrBtn" class="btn">Explain</button>
+              </div>
+              <div id="ocrResult" class="output">Results will appear here...</div>
+            </div>
+          </div>
+        </main>
+        
+        <div id="panel-site" class="panel">
+          <div class="section">
+            <h3>Site Information</h3>
+            <div class="action-buttons">
+              <button id="getSiteInfoBtn" class="btn full-width">Analyze Current Site</button>
+            </div>
+            <div id="siteInfoOutput" class="output">
+              <div id="siteSummary" class="site-summary"></div>
+              <div id="domainInfo" class="domain-info">
+                <h4>Domain Details</h4>
+                <div id="domainDetails" class="details-grid"></div>
+              </div>
+              <div id="securityInfo" class="security-info">
+                <h4>Security Analysis</h4>
+                <div id="securityDetails" class="details-grid"></div>
+              </div>
+              <div id="analysisInfo" class="analysis-info">
+                <h4>Analysis Details</h4>
+                <ul id="analysisList" class="analysis-list"></ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Help area: scripts can append helpful banners here when heavy libs or tokens are missing -->
+        <div id="helpArea" class="ai-help-area" aria-hidden="false"></div>
+
+        <div class="ai-footer small muted">Press Alt+S to toggle · Drag border to resize</div>
+      </div>
+    </div>
+
+    <script>
+      // placeholder to let contentScript append script.js after HTML
+    </script>
+  </body>
 </html>

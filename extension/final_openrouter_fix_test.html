@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Final OpenRouter Fix Test</title>
+</head>
+<body>
+    <h1>Final OpenRouter Fix Test</h1>
+    
+    <h2>Issues Addressed:</h2>
+    <ul>
+        <li>✅ OpenRouter 401 Unauthorized error resolved</li>
+        <li>✅ Free models work without requiring API tokens</li>
+        <li>✅ Content script connection issues addressed</li>
+    </ul>
+    
+    <h2>Changes Made:</h2>
+    <ol>
+        <li><strong>background.js</strong> - Added extra safeguards to ensure free models never use tokens</li>
+        <li><strong>apiClient.js</strong> - Added extra validation to remove Authorization headers for free models</li>
+        <li><strong>dev_token.txt</strong> - Confirmed empty file to prevent invalid token errors</li>
+    </ol>
+    
+    <h2>Steps to Test:</h2>
+    <p>Follow these steps to verify the fix:</p>
+    <ol>
+        <li>Load the extension in Chrome</li>
+        <li>Open the extension popup</li>
+        <li>Try any AI feature (chat, summarize, explain, etc.)</li>
+        <li>Check that you get a response without 401 errors</li>
+        <li>If you still see errors, click the "Clear Stored Tokens" button below</li>
+    </ol>
+    
+    <button id="clearTokens" style="padding: 10px 20px; background-color: #ff4444; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 20px;">
+        Clear All Stored Tokens
+    </button>
+    <div id="result" style="margin-top: 10px;"></div>
+
+    <script>
+        document.getElementById('clearTokens').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('result');
+            try {
+                // Clear all possible stored tokens
+                await chrome.storage.sync.remove(['apiToken', 'provider', 'model', 'groqEndpoint', 'hfModel']);
+                await chrome.storage.local.remove(['apiToken', 'provider', 'model', 'groqEndpoint', 'hfModel']);
+                
+                resultDiv.innerHTML = '<p style="color: green;">✅ All stored tokens cleared successfully!</p>';
+                
+                // Reload the extension to apply changes
+                resultDiv.innerHTML += '<p>Reloading extension in 2 seconds...</p>';
+                setTimeout(() => {
+                    chrome.runtime.reload();
+                }, 2000);
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="color: red;">❌ Error: ${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>

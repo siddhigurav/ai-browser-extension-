@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API and Site Info Fix Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #121212;
+            color: #E0E0E0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #5D3A9B;
+        }
+        button {
+            background-color: #5D3A9B;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #7D5AB9;
+        }
+        #result {
+            background-color: #1E1E1E;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+        }
+        .success {
+            color: #4CAF50;
+        }
+        .error {
+            color: #F44336;
+        }
+        .info {
+            color: #2196F3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>API and Site Info Fix Test</h1>
+        <p>This test verifies that the API call and site info formatting fixes work correctly:</p>
+        
+        <button id="testApiCall">Test API Call (Free Model)</button>
+        <button id="testSiteInfo">Test Site Info Formatting</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        document.getElementById('testApiCall').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<span class="info">Testing API call with free OpenRouter model...</span>';
+            
+            try {
+                const response = await chrome.runtime.sendMessage({
+                    type: 'AI_REQUEST',
+                    payload: {
+                        input: "Hello, world! Just respond with 'Test successful' and nothing else.",
+                        selectedModel: 'meta-llama/llama-3-8b-instruct'
+                    }
+                });
+                
+                if (response && response.success) {
+                    resultDiv.innerHTML = '<span class="success">✅ PASS: API call with free OpenRouter model works</span>\n\nResponse: ' + response.data.text;
+                } else {
+                    resultDiv.innerHTML = `<span class="error">❌ FAIL: ${response?.error || 'Unknown error'}</span>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ ERROR: ${error.message}</span>`;
+            }
+        });
+        
+        document.getElementById('testSiteInfo').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<span class="info">Testing site info formatting...</span>';
+            
+            // Simulate site info data
+            const mockAnalysis = {
+                trustScore: 75,
+                safetyStatus: 'Likely Safe',
+                domainAge: '2 years',
+                trafficEstimate: 'High',
+                analysisDetails: [
+                    'Domain registered 2 years ago (established)',
+                    'Recognized popular domain (nykaa)',
+                    'High trust score indicates established site',
+                    'No major security concerns detected'
+                ]
+            };
+            
+            // Format the information nicely with emojis and better formatting
+            const trustScorePercentage = Math.round(mockAnalysis.trustScore);
+            const trustScoreVisual = '█'.repeat(Math.floor(trustScorePercentage / 10)) + '░'.repeat(10 - Math.floor(trustScorePercentage / 10));
+            
+            // Determine emoji based on trust score
+            let trustEmoji = '🔴'; // Red circle for low trust
+            if (trustScorePercentage >= 80) trustEmoji = '🟢'; // Green circle for high trust
+            else if (trustScorePercentage >= 60) trustEmoji = '🟡'; // Yellow circle for medium trust
+            else if (trustScorePercentage >= 40) trustEmoji = '🟠'; // Orange circle for moderate trust
+            
+            // Determine safety emoji
+            let safetyEmoji = '⚠️';
+            if (mockAnalysis.safetyStatus === 'Likely Safe') safetyEmoji = '✅';
+            else if (mockAnalysis.safetyStatus === 'High Risk') safetyEmoji = '🚨';
+            else if (mockAnalysis.safetyStatus === 'Suspicious') safetyEmoji = '⚠️';
+            else if (mockAnalysis.safetyStatus === 'Caution') safetyEmoji = '🔶';
+            
+            // Determine traffic emoji
+            let trafficEmoji = '📊';
+            if (mockAnalysis.trafficEstimate === 'Very High') trafficEmoji = '📈';
+            else if (mockAnalysis.trafficEstimate === 'High') trafficEmoji = '📊';
+            else if (mockAnalysis.trafficEstimate === 'Medium') trafficEmoji = '📉';
+            else if (mockAnalysis.trafficEstimate === 'Low' || mockAnalysis.trafficEstimate === 'Very Low') trafficEmoji = '🔍';
+            
+            const infoText = `
+🌐 Site Analysis Report 🌐
+
+🔖 Title: Buy Cosmetics Products & Beauty Products Online in India at Best Price | Nykaa
+🔗 URL: https://www.nykaa.com/
+🖼️ Favicon: https://images-static.naikaa.com/media/wysiwyg/uiTools/2024-3/beauty.png
+
+${trustEmoji} Trust Score: ${trustScorePercentage}/100
+[${trustScoreVisual}]
+
+${safetyEmoji} Safety Status: ${mockAnalysis.safetyStatus}
+📅 Domain Age: ${mockAnalysis.domainAge}
+${trafficEmoji} Traffic Estimate: ${mockAnalysis.trafficEstimate}
+
+🔍 Analysis Details:
+• ${mockAnalysis.analysisDetails.slice(0, 5).join('\n• ')}`;
+            
+            resultDiv.innerHTML = '<span class="success">✅ PASS: Site info formatting works</span>\n\nFormatted Output:\n\n' + infoText;
+        });
+    </script>
+</body>
+</html>

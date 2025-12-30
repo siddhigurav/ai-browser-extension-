@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Model Selection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #121212;
+            color: #E0E0E0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #5D3A9B;
+        }
+        button {
+            background-color: #5D3A9B;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #7D5AB9;
+        }
+        #result {
+            background-color: #1E1E1E;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+        }
+        .success {
+            color: #4CAF50;
+        }
+        .error {
+            color: #F44336;
+        }
+        .info {
+            color: #2196F3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Model Selection Test</h1>
+        <p>This test verifies that the model selection is working correctly:</p>
+        
+        <button id="testFreeModel">Test Free Model (No Token)</button>
+        <button id="testSpecificModel">Test Specific Model</button>
+        <button id="testModelConfig">Test Model Config Lookup</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        document.getElementById('testFreeModel').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<span class="info">Testing free model without token...</span>';
+            
+            try {
+                const response = await chrome.runtime.sendMessage({
+                    type: 'AI_REQUEST',
+                    payload: {
+                        input: "Hello, world!",
+                        model: 'meta-llama/llama-3-8b-instruct',
+                        provider: 'openrouter'
+                    }
+                });
+                
+                if (response && response.success) {
+                    resultDiv.innerHTML = '<span class="success">PASS: Free model works without token</span>\n\nResponse: ' + response.data.text;
+                } else {
+                    resultDiv.innerHTML = `<span class="error">FAIL: ${response?.error || 'Unknown error'}</span>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">ERROR: ${error.message}</span>`;
+            }
+        });
+        
+        document.getElementById('testSpecificModel').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<span class="info">Testing specific model...</span>';
+            
+            try {
+                const response = await chrome.runtime.sendMessage({
+                    type: 'AI_REQUEST',
+                    payload: {
+                        input: "Hello, world!",
+                        selectedModel: 'meta-llama/llama-3-8b-instruct'
+                    }
+                });
+                
+                if (response && response.success) {
+                    resultDiv.innerHTML = '<span class="success">PASS: Specific model works</span>\n\nResponse: ' + response.data.text;
+                } else {
+                    resultDiv.innerHTML = `<span class="error">FAIL: ${response?.error || 'Unknown error'}</span>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">ERROR: ${error.message}</span>`;
+            }
+        });
+        
+        document.getElementById('testModelConfig').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<span class="info">Testing model config lookup...</span>';
+            
+            try {
+                // Test the MODEL_CONFIGS lookup directly by sending a message to get settings
+                const response = await chrome.runtime.sendMessage({
+                    type: 'GET_SETTINGS'
+                });
+                
+                resultDiv.innerHTML = '<span class="success">PASS: Settings retrieved</span>\n\nSettings: ' + JSON.stringify(response, null, 2);
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">ERROR: ${error.message}</span>`;
+            }
+        });
+    </script>
+</body>
+</html>

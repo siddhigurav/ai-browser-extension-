@@ -16,6 +16,7 @@ export function PdfPanel() {
         <input type="text" id="pdfQuestion" placeholder="Ask a question about the PDF..." style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 10px;">
         <button id="askPdfBtn" style="background-color: #2196F3; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; width: 100%;">Ask About PDF</button>
       </div>
+      <div id="pdfStatus" style="margin-bottom: 15px; color: #f44336; display: none;"></div>
     </div>
   `;
 }

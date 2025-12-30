@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fix Verification Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #121212;
+            color: #E0E0E0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #5D3A9B;
+        }
+        button {
+            background-color: #5D3A9B;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #7D5AB9;
+        }
+        #result {
+            background-color: #1E1E1E;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+        }
+        .success {
+            color: #4CAF50;
+        }
+        .error {
+            color: #F44336;
+        }
+        .info {
+            color: #2196F3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Fix Verification Test</h1>
+        <p>This test verifies that the extension fixes are working correctly:</p>
+        
+        <button id="test1">Test 1: Default Provider is OpenRouter</button>
+        <button id="test2">Test 2: Free Model Works Without Token</button>
+        <button id="test3">Test 3: Site Analysis Functionality</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        // Test 1: Verify that the default provider is OpenRouter
+        document.getElementById('test1').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<span class="info">Testing default provider...</span>';
+            
+            try {
+                // Send a message to get settings
+                const response = await chrome.runtime.sendMessage({
+                    type: 'GET_SETTINGS'
+                });
+                
+                if (response && response.provider) {
+                    if (response.provider === 'openrouter') {
+                        resultDiv.innerHTML = '<span class="success">PASS: Default provider is correctly set to OpenRouter</span>';
+                    } else {
+                        resultDiv.innerHTML = `<span class="error">FAIL: Default provider is ${response.provider}, expected openrouter</span>`;
+                    }
+                } else {
+                    // Try to get settings directly from storage
+                    chrome.storage.sync.get(['provider', 'model'], (data) => {
+                        if (data.provider === 'openrouter' || !data.provider) {
+                            resultDiv.innerHTML = '<span class="success">PASS: Default provider is correctly set to OpenRouter</span>';
+                        } else {
+                            resultDiv.innerHTML = `<span class="error">FAIL: Default provider is ${data.provider}, expected openrouter</span>`;
+                        }
+                    });
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">ERROR: ${error.message}</span>`;
+            }
+        });
+        
+        // Test 2: Verify that free models work without tokens
+        document.getElementById('test2').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<span class="info">Testing free model without token...</span>';
+            
+            try {
+                const response = await chrome.runtime.sendMessage({
+                    type: 'AI_REQUEST',
+                    payload: {
+                        input: "Say hello",
+                        model: 'meta-llama/llama-3-8b-instruct',
+                        provider: 'openrouter'
+                    }
+                });
+                
+                if (response && response.success) {
+                    resultDiv.innerHTML = '<span class="success">PASS: Free model works without token</span>\n\nResponse: ' + response.data.text;
+                } else {
+                    resultDiv.innerHTML = `<span class="error">FAIL: ${response?.error || 'Unknown error'}</span>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">ERROR: ${error.message}</span>`;
+            }
+        });
+        
+        // Test 3: Verify site analysis functionality
+        document.getElementById('test3').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<span class="info">Testing site analysis...</span>';
+            
+            try {
+                // Get current tab URL
+                const tabs = await chrome.tabs.query({active: true, currentWindow: true});
+                const tab = tabs[0];
+                
+                if (!tab) {
+                    throw new Error('No active tab found');
+                }
+                
+                const response = await chrome.runtime.sendMessage({
+                    type: 'ANALYZE_SITE',
+                    payload: {
+                        url: tab.url
+                    }
+                });
+                
+                if (response && response.success) {
+                    resultDiv.innerHTML = '<span class="success">PASS: Site analysis works correctly</span>\n\nAnalysis: ' + JSON.stringify(response.data, null, 2);
+                } else {
+                    resultDiv.innerHTML = `<span class="error">FAIL: ${response?.error || 'Unknown error'}</span>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">ERROR: ${error.message}</span>`;
+            }
+        });
+    </script>
+</body>
+</html>
