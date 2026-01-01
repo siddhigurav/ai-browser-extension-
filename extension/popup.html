@@ -26,8 +26,8 @@
     }
 
     body {
-      width: 380px;
-      height: 600px;
+      width: 420px;
+      height: 650px;
       background: var(--bg-dark);
       color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
@@ -56,14 +56,14 @@
     }
 
     .logo-icon {
-      width: 28px;
-      height: 28px;
+      width: 32px;
+      height: 32px;
       background: linear-gradient(135deg, var(--primary), #8b5cf6);
       border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 16px;
+      font-size: 18px;
     }
 
     .settings-btn {
@@ -71,10 +71,10 @@
       border: none;
       color: var(--text-secondary);
       cursor: pointer;
-      padding: 6px;
+      padding: 8px;
       border-radius: 6px;
       transition: all 0.2s;
-      font-size: 18px;
+      font-size: 20px;
     }
 
     .settings-btn:hover {
@@ -82,15 +82,39 @@
       color: var(--text);
     }
 
-    /* Chat Container */
-    .chat-container {
-      flex: 1;
+    /* Tabs */
+    .tabs {
       display: flex;
-      flex-direction: column;
-      overflow: hidden;
+      background: var(--bg-darker);
+      border-bottom: 1px solid var(--border);
+      padding: 0 20px;
+      gap: 4px;
+      flex-shrink: 0;
     }
 
-    .messages {
+    .tab {
+      padding: 12px 16px;
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .tab:hover {
+      color: var(--text);
+    }
+
+    .tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    /* Content Area */
+    .content {
       flex: 1;
       overflow-y: auto;
       padding: 20px;
@@ -99,20 +123,77 @@
       gap: 16px;
     }
 
-    .messages::-webkit-scrollbar {
+    .content::-webkit-scrollbar {
       width: 6px;
     }
 
-    .messages::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    .messages::-webkit-scrollbar-thumb {
+    .content::-webkit-scrollbar-thumb {
       background: var(--border);
       border-radius: 3px;
     }
 
-    /* Message Bubbles */
+    .tab-panel {
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .tab-panel.active {
+      display: flex;
+    }
+
+    /* Feature Cards */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .feature-card:hover {
+      background: var(--bg-darker);
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+    }
+
+    .feature-icon {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .feature-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--text);
+    }
+
+    .feature-desc {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    /* Chat Interface */
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
     .message {
       display: flex;
       gap: 10px;
@@ -120,86 +201,46 @@
     }
 
     @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
-    .message.user {
-      flex-direction: row-reverse;
-    }
+    .message.user { flex-direction: row-reverse; }
 
     .avatar {
-      width: 32px;
-      height: 32px;
+      width: 28px;
+      height: 28px;
       border-radius: 50%;
       flex-shrink: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 16px;
+      font-size: 14px;
       background: var(--surface);
     }
 
-    .message.user .avatar {
-      background: var(--primary);
-    }
+    .message.user .avatar { background: var(--primary); }
 
     .message-content {
       max-width: 75%;
       background: var(--surface);
-      padding: 12px 16px;
-      border-radius: var(--radius);
-      line-height: 1.6;
-      font-size: 14px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      line-height: 1.5;
+      font-size: 13px;
       word-wrap: break-word;
     }
 
     .message.user .message-content {
       background: var(--primary);
-      border-radius: var(--radius) var(--radius) 4px var(--radius);
+      border-radius: 12px 12px 2px 12px;
     }
 
     .message.assistant .message-content {
-      border-radius: var(--radius) var(--radius) var(--radius) 4px;
-    }
-
-    /* Typing Indicator */
-    .typing {
-      display: flex;
-      gap: 4px;
-      padding: 8px;
-    }
-
-    .typing-dot {
-      width: 6px;
-      height: 6px;
-      background: var(--text-secondary);
-      border-radius: 50%;
-      animation: typing 1.4s infinite;
-    }
-
-    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-
-    @keyframes typing {
-      0%, 60%, 100% { transform: translateY(0); opacity: 0.6; }
-      30% { transform: translateY(-8px); opacity: 1; }
+      border-radius: 12px 12px 12px 2px;
     }
 
     /* Input Area */
-    .input-area {
-      padding: 16px 20px;
-      background: var(--surface);
-      border-top: 1px solid var(--border);
-      flex-shrink: 0;
-    }
-
     .input-wrapper {
       display: flex;
       gap: 8px;
@@ -208,7 +249,7 @@
 
     .input-box {
       flex: 1;
-      background: var(--bg-dark);
+      background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 10px;
       padding: 10px 14px;
@@ -216,7 +257,7 @@
       font-size: 14px;
       font-family: inherit;
       resize: none;
-      max-height: 100px;
+      max-height: 80px;
       transition: border-color 0.2s;
     }
 
@@ -251,141 +292,70 @@
       cursor: not-allowed;
     }
 
-    /* Quick Actions */
-    .quick-actions {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 12px;
-      overflow-x: auto;
-      padding: 2px;
-    }
-
-    .quick-actions::-webkit-scrollbar {
-      height: 4px;
-    }
-
-    .quick-actions::-webkit-scrollbar-thumb {
-      background: var(--border);
-      border-radius: 2px;
-    }
-
-    .action-btn {
-      background: var(--bg-darker);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 8px 14px;
-      border-radius: 8px;
-      font-size: 13px;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .action-btn:hover {
+    /* File Upload */
+    .upload-area {
       background: var(--surface);
-      border-color: var(--primary);
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 32px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
     }
 
-    /* Error Message */
-    .error-msg {
-      background: rgba(239, 68, 68, 0.1);
-      border: 1px solid var(--error);
-      color: var(--error);
+    .upload-area:hover {
+      border-color: var(--primary);
+      background: var(--bg-darker);
+    }
+
+    .upload-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    .upload-text {
+      font-size: 14px;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .upload-hint {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* Status Messages */
+    .status-msg {
       padding: 12px 16px;
       border-radius: 8px;
       font-size: 13px;
-      margin: 12px 20px;
       display: none;
       animation: slideIn 0.3s ease;
     }
 
-    .error-msg.show {
-      display: block;
+    .status-msg.show { display: block; }
+
+    .status-msg.error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid var(--error);
+      color: var(--error);
     }
 
-    /* Welcome Screen */
-    .welcome {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 40px 20px;
-      text-align: center;
-    }
-
-    .welcome-icon {
-      width: 64px;
-      height: 64px;
-      background: linear-gradient(135deg, var(--primary), #8b5cf6);
-      border-radius: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 32px;
-      margin-bottom: 20px;
-    }
-
-    .welcome h2 {
-      font-size: 20px;
-      margin-bottom: 8px;
-      font-weight: 600;
-    }
-
-    .welcome p {
-      color: var(--text-secondary);
-      font-size: 14px;
-      line-height: 1.6;
-      margin-bottom: 24px;
-    }
-
-    .suggestions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      width: 100%;
-      max-width: 340px;
-    }
-
-    .suggestion {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      padding: 12px;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: all 0.2s;
-      text-align: left;
-      font-size: 13px;
-    }
-
-    .suggestion:hover {
-      background: var(--bg-darker);
-      border-color: var(--primary);
-      transform: translateY(-2px);
-    }
-
-    .suggestion-icon {
-      font-size: 20px;
-      margin-bottom: 6px;
-    }
-
-    .suggestion-text {
-      color: var(--text-secondary);
+    .status-msg.success {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid var(--success);
+      color: var(--success);
     }
 
     /* Model Selector */
-    .model-selector {
-      padding: 12px 20px;
-      background: var(--bg-darker);
+    .model-bar {
+      padding: 10px 20px;
+      background: var(--surface);
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
       gap: 10px;
-      font-size: 13px;
-      flex-shrink: 0;
+      font-size: 12px;
     }
 
     .model-label {
@@ -394,18 +364,72 @@
 
     .model-select {
       flex: 1;
-      background: var(--surface);
+      background: var(--bg-dark);
       border: 1px solid var(--border);
       color: var(--text);
       padding: 6px 10px;
       border-radius: 6px;
-      font-size: 13px;
+      font-size: 12px;
       cursor: pointer;
     }
 
-    .model-select:focus {
-      outline: none;
-      border-color: var(--primary);
+    /* Panel Title */
+    .panel-title {
+      color: var(--text);
+      font-size: 16px;
+      margin-bottom: 8px;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    /* Typing Indicator */
+    .typing {
+      display: flex;
+      gap: 4px;
+      padding: 8px;
+    }
+
+    .typing-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--text-secondary);
+      border-radius: 50%;
+      animation: typing 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typing {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.6; }
+      30% { transform: translateY(-8px); opacity: 1; }
+    }
+
+    /* Button */
+    .btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-darker);
     }
   </style>
 </head>
@@ -418,7 +442,7 @@
     <button class="settings-btn" id="settingsBtn" title="Settings">⚙️</button>
   </div>
 
-  <div class="model-selector">
+  <div class="model-bar">
     <span class="model-label">Model:</span>
     <select class="model-select" id="modelSelect" title="Select AI model">
       <option value="meta-llama/llama-3-8b-instruct">Llama 3 8B (Free)</option>
@@ -428,56 +452,71 @@
     </select>
   </div>
 
-  <div class="error-msg" id="errorMsg"></div>
+  <div class="tabs">
+    <button class="tab active" data-tab="chat">💬 Chat</button>
+    <button class="tab" data-tab="page">🌐 Page</button>
+    <button class="tab" data-tab="files">📁 Files</button>
+  </div>
 
-  <div class="chat-container">
-    <div class="messages" id="messages">
-      <div class="welcome" id="welcome">
-        <div class="welcome-icon">✨</div>
-        <h2>How can I help you today?</h2>
-        <p>Choose a suggestion below or type your own question</p>
-        <div class="suggestions">
-          <div class="suggestion" data-action="summarize">
-            <div class="suggestion-icon">📄</div>
-            <div class="suggestion-text">Summarize page</div>
-          </div>
-          <div class="suggestion" data-action="explain">
-            <div class="suggestion-icon">💡</div>
-            <div class="suggestion-text">Explain selection</div>
-          </div>
-          <div class="suggestion" data-action="pdf">
-            <div class="suggestion-icon">📑</div>
-            <div class="suggestion-text">Process PDF</div>
-          </div>
-          <div class="suggestion" data-action="ocr">
-            <div class="suggestion-icon">🖼️</div>
-            <div class="suggestion-text">Extract from Image</div>
-          </div>
+  <div class="content">
+    <div class="status-msg" id="statusMsg"></div>
+
+    <!-- Chat Tab -->
+    <div class="tab-panel active" id="chat-panel">
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="input-wrapper">
+        <textarea class="input-box" id="chatInput" placeholder="Ask me anything..." rows="1"></textarea>
+        <button class="send-btn" id="sendBtn">➤</button>
+      </div>
+    </div>
+
+    <!-- Page Tab -->
+    <div class="tab-panel" id="page-panel">
+      <h3 class="panel-title">Web Page Tools</h3>
+      <div class="feature-grid">
+        <div class="feature-card" data-action="summarize-page">
+          <div class="feature-icon">📄</div>
+          <div class="feature-title">Summarize Page</div>
+          <div class="feature-desc">Get key points from current page</div>
+        </div>
+        <div class="feature-card" data-action="explain-selection">
+          <div class="feature-icon">💡</div>
+          <div class="feature-title">Explain Selection</div>
+          <div class="feature-desc">Understand selected text</div>
+        </div>
+        <div class="feature-card" data-action="extract-points">
+          <div class="feature-icon">🎯</div>
+          <div class="feature-title">Extract Points</div>
+          <div class="feature-desc">Get key takeaways</div>
+        </div>
+        <div class="feature-card" data-action="improve-text">
+          <div class="feature-icon">✨</div>
+          <div class="feature-title">Improve Text</div>
+          <div class="feature-desc">Enhance selected text</div>
         </div>
       </div>
     </div>
 
-    <div class="input-area">
-      <div class="quick-actions" id="quickActions">
-        <button class="action-btn" data-action="summarize">📄 Summarize</button>
-        <button class="action-btn" data-action="explain">💡 Explain</button>
-        <button class="action-btn" data-action="improve">✨ Improve</button>
-        <button class="action-btn" data-action="extract">🎯 Extract Points</button>
-        <button class="action-btn" data-action="pdf">📑 PDF</button>
-        <button class="action-btn" data-action="ocr">🖼️ OCR</button>
+    <!-- Files Tab -->
+    <div class="tab-panel" id="files-panel">
+      <h3 class="panel-title">Upload & Process</h3>
+      
+      <div class="upload-area" id="pdfUpload">
+        <div class="upload-icon">📑</div>
+        <div class="upload-text">Upload PDF Document</div>
+        <div class="upload-hint">Click to select a PDF file (max 10MB)</div>
       </div>
-      <div class="input-wrapper">
-        <textarea class="input-box" id="userInput" placeholder="Ask me anything..." rows="1"></textarea>
-        <button class="send-btn" id="sendBtn">
-          <span>➤</span>
-        </button>
+
+      <div class="upload-area" id="imageUpload">
+        <div class="upload-icon">🖼️</div>
+        <div class="upload-text">Upload Image for OCR</div>
+        <div class="upload-hint">Extract text from images (max 5MB)</div>
       </div>
     </div>
   </div>
 
-  <!-- Hidden file inputs -->
-  <input type="file" id="pdfInput" accept=".pdf" style="display: none;">
-  <input type="file" id="imageInput" accept="image/*" style="display: none;">
+  <input type="file" id="pdfInput" accept=".pdf" class="hidden-input" title="Upload PDF document">
+  <input type="file" id="imageInput" accept="image/*" class="hidden-input" title="Upload image for OCR">
 
   <script src="popup.js"></script>
 </body>

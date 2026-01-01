@@ -409,11 +409,8 @@ export async function callModel(payload = {}, token = '', options = {}) {
 
   // OpenRouter provider
   if (provider === 'openrouter') {
-    // NOTE: OpenRouter supports both free models (no API key required) and paid models that
-    // require an API key. The extension stores a single `apiToken` in `chrome.storage.sync`.
-    // If the selected model is in the `freeModels` list we intentionally DO NOT send the
-    // Authorization header. If a non-free model is selected, we will attach the provided
-    // token as a Bearer token. This behavior is controlled by `finalToken` below.
+    // OpenRouter requires authentication for all models (free or paid)
+    // Free models are limited in rate but don't require payment
     const endpoint = 'https://openrouter.ai/api/v1/chat/completions';
     
     // Validate endpoint
@@ -429,7 +426,7 @@ export async function callModel(payload = {}, token = '', options = {}) {
       const text = payload.input || payload.prompt || payload.text || '';
       // Add clear instructions to the AI about what kind of response to provide
       messages = [
-        { role: 'system', content: 'You are a helpful AI assistant. Provide clear, concise, and relevant responses in 2-3 sentences maximum. Do not include unnecessary information, model details, token counts, or meta-commentary. Only provide the requested information.' },
+        { role: 'system', content: 'You are a helpful AI assistant. Provide clear, concise, and relevant responses. Do not include unnecessary information or meta-commentary.' },
         { role: 'user', content: String(text) }
       ];
     }
@@ -442,49 +439,26 @@ export async function callModel(payload = {}, token = '', options = {}) {
     // Use the model from the payload or default to a free model
     const model = payload.model || 'meta-llama/llama-3-8b-instruct';
     
-    // Check if this is a free model that doesn't require a token
-    const freeModels = [
-      'openchat/openchat-7b',
-      'mistralai/mistral-7b-instruct',
-      'google/gemma-7b-it',
-      'nousresearch/nous-hermes-2-mixtral-8x7b-dpo',
-      'microsoft/phi-3-medium-128k-instruct',
-      'meta-llama/llama-3-8b-instruct',
-      'nova-2-lite',
-      'qwen/qwen-vl-max'
-    ];
-    
-    // For free models, ALWAYS omit the token (even if provided)
-    // For paid models, use the token if provided, otherwise throw error
-    const isFreeModel = freeModels.includes(model);
-    let finalToken = null;
-    
-    if (!isFreeModel && !token) {
-      throw new Error(`Model "${model}" requires an API token. Please provide your OpenRouter API key in the extension settings.`);
-    }
-    
-    if (!isFreeModel && token) {
-      finalToken = token;
-    }
-
     try {
-      // Build headers
+      // Build headers (OpenRouter requires auth header with special key or API key)
       const headers = { 
         'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://www.nykaa.com', // Required by OpenRouter
+        'HTTP-Referer': 'https://www.yoursite.com', // Required by OpenRouter
         'X-Title': 'AI Assistant Extension' // Required by OpenRouter
       };
       
-      // Add Authorization header only if we have a valid token and it's not a free model
-      if (finalToken) {
-        headers.Authorization = `Bearer ${finalToken}`;
+      // OpenRouter requires an API key, but also accepts requests without one for free models
+      // with very limited rate limits. For production, users should provide a key.
+      // Try with the token if provided, otherwise make unauthenticated request (free tier)
+      if (token && token !== 'YOUR_API_TOKEN_HERE' && token.length > 5) {
+        headers.Authorization = `Bearer ${token}`;
       }
+      // If no valid token, OpenRouter will still accept the request but with free tier limits
       
       // DEBUG: Log exactly what we're sending
       console.log('DEBUG - Building OpenRouter request with:', {
         model,
-        isFreeModel,
-        hasToken: !!finalToken,
+        hasToken: !!token,
         headers: Object.keys(headers),
         messageCount: messages.length,
         firstMessage: messages[0]?.content?.substring(0, 100) + '...'

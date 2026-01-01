@@ -1,404 +1,425 @@
-// popup-modern.js - Modern AI Assistant like Sider.ai
+// AI Assistant - Popup Script
 
-// DOM Elements
-const messagesContainer = document.getElementById('messages');
-const welcomeScreen = document.getElementById('welcome');
-const userInput = document.getElementById('userInput');
-const sendBtn = document.getElementById('sendBtn');
-const errorMsg = document.getElementById('errorMsg');
-const modelSelect = document.getElementById('modelSelect');
-const settingsBtn = document.getElementById('settingsBtn');
-const quickActions = document.getElementById('quickActions');
-
-// State
-let isLoading = false;
-let conversationStarted = false;
+// State Management
+let currentTab = 'chat';
+let isProcessing = false;
 
 // Initialize
-document.addEventListener('DOMContentLoaded', () => {
-  loadSettings();
-  setupEventListeners();
-});
+document.addEventListener('DOMContentLoaded', init);
 
-// Load saved settings
-function loadSettings() {
-  chrome.storage.sync.get(['model'], (data) => {
-    if (data.model) {
-      modelSelect.value = data.model;
-    }
+function init() {
+  // Tab switching
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => switchTab(tab.dataset.tab));
   });
-}
 
-// Setup event listeners
-function setupEventListeners() {
-  // Send button
-  sendBtn.addEventListener('click', handleSend);
-
-  // Enter to send (Shift+Enter for new line)
-  userInput.addEventListener('keydown', (e) => {
+  // Chat functionality
+  const chatInput = document.getElementById('chatInput');
+  const sendBtn = document.getElementById('sendBtn');
+  
+  chatInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      sendChatMessage();
     }
   });
+  
+  chatInput.addEventListener('input', () => {
+    chatInput.style.height = 'auto';
+    chatInput.style.height = chatInput.scrollHeight + 'px';
+  });
+  
+  sendBtn.addEventListener('click', sendChatMessage);
 
-  // Auto-resize textarea
-  userInput.addEventListener('input', () => {
-    userInput.style.height = 'auto';
-    userInput.style.height = Math.min(userInput.scrollHeight, 100) + 'px';
+  // Page actions
+  document.querySelectorAll('[data-action]').forEach(card => {
+    card.addEventListener('click', () => handlePageAction(card.dataset.action));
   });
 
-  // Model selection
-  modelSelect.addEventListener('change', () => {
-    chrome.storage.sync.set({ model: modelSelect.value });
+  // File uploads
+  document.getElementById('pdfUpload').addEventListener('click', () => {
+    document.getElementById('pdfInput').click();
   });
+  
+  document.getElementById('imageUpload').addEventListener('click', () => {
+    document.getElementById('imageInput').click();
+  });
+  
+  document.getElementById('pdfInput').addEventListener('change', handlePDFUpload);
+  document.getElementById('imageInput').addEventListener('change', handleImageUpload);
 
-  // Settings button
-  settingsBtn.addEventListener('click', () => {
+  // Settings
+  document.getElementById('settingsBtn').addEventListener('click', () => {
     chrome.runtime.openOptionsPage();
   });
 
-  // Suggestion cards
-  document.querySelectorAll('.suggestion').forEach(suggestion => {
-    suggestion.addEventListener('click', () => {
-      const action = suggestion.getAttribute('data-action');
-      if (action) {
-        handleQuickAction(action);
-      } else {
-        const prompt = suggestion.getAttribute('data-prompt');
-        if (prompt) {
-          userInput.value = prompt;
-          handleSend();
-        }
-      }
-    });
-  });
+  // Load chat history
+  loadChatHistory();
+}
 
-  // Quick action buttons
-  document.querySelectorAll('.action-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const action = btn.getAttribute('data-action');
-      handleQuickAction(action);
-    });
+function switchTab(tabName) {
+  currentTab = tabName;
+  
+  // Update tabs
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.classList.toggle('active', tab.dataset.tab === tabName);
+  });
+  
+  // Update panels
+  document.querySelectorAll('.tab-panel').forEach(panel => {
+    panel.classList.toggle('active', panel.id === `${tabName}-panel`);
   });
 }
 
-// Handle quick actions
-async function handleQuickAction(action) {
-  hideError();
 
-  try {
-    switch (action) {
-      case 'summarize':
-        await extractAndProcess('Summarize the main points of this page in 3-4 sentences:', 'page');
-        break;
-      case 'explain':
-        await extractAndProcess('Explain the following text in simple terms:', 'selection');
-        break;
-      case 'improve':
-        await extractAndProcess('Improve the clarity and readability of this text:', 'selection');
-        break;
-      case 'extract':
-        await extractAndProcess('Extract the key points and action items from this text:', 'page');
-        break;
-      case 'pdf':
-        handlePDFUpload();
-        break;
-      case 'ocr':
-        handleImageUpload();
-        break;
-      case 'translate':
-        userInput.value = 'Translate the following to English:';
-        userInput.focus();
-        break;
-    }
-  } catch (error) {
-    showError('Failed to perform action: ' + error.message);
-  }
-}
-
-// Extract page content or selection and process
-async function extractAndProcess(instruction, type) {
-  try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-
-    // Send message to content script
-    const response = await chrome.tabs.sendMessage(tab.id, {
-      type: type === 'page' ? 'EXTRACT_PAGE_CONTENT' : 'EXTRACT_SELECTED_TEXT'
-    });
-
-    if (response && response.content) {
-      const prompt = `${instruction}\n\n${response.content.substring(0, 3000)}`;
-      await sendMessage(prompt, true);
-    } else {
-      showError(type === 'page' ? 'Failed to extract page content' : 'No text selected');
-    }
-  } catch (error) {
-    showError('Failed to extract content: ' + error.message);
-  }
-}
-
-// Handle send message
-async function handleSend() {
-  const message = userInput.value.trim();
-  if (!message || isLoading) return;
-
-  await sendMessage(message);
-}
-
-// Send message to AI
-async function sendMessage(message, skipDisplay = false) {
-  if (!skipDisplay) {
-    // Display user message
-    addMessage(message, 'user');
-  }
-
-  // Clear input and hide welcome
-  userInput.value = '';
-  userInput.style.height = 'auto';
-  hideWelcome();
-
-  // Show typing indicator
+// Chat Functions
+async function sendChatMessage() {
+  const chatInput = document.getElementById('chatInput');
+  const message = chatInput.value.trim();
+  
+  if (!message || isProcessing) return;
+  
+  chatInput.value = '';
+  chatInput.style.height = 'auto';
+  
+  addMessage('user', message);
   showTyping();
-  isLoading = true;
-  sendBtn.disabled = true;
-
+  
+  isProcessing = true;
+  
   try {
-    // Get API token and provider
-    const { apiToken, provider, model: savedModel } = await chrome.storage.sync.get(['apiToken', 'provider', 'model']);
-
-    // Construct payload for background script
-    const selectedModel = modelSelect.value || savedModel || 'meta-llama/llama-3-8b-instruct';
+    const modelSelect = document.getElementById('modelSelect');
+    const selectedModel = modelSelect.value;
     
-    // Call background script with the correct message type
     const response = await chrome.runtime.sendMessage({
       type: 'AI_REQUEST',
       payload: {
         prompt: message,
         model: selectedModel,
         selectedModel: selectedModel,
-        provider: provider || 'openrouter',
-        maxTokens: 1000,
+        provider: 'openrouter',
+        maxTokens: 2000,
         temperature: 0.7
-      },
-      apiToken: apiToken || '',
-      provider: provider || ''
-    });
-
-    hideTyping();
-
-    if (response && response.success && response.data) {
-      // Extract text from the response data
-      let responseText = '';
-      if (typeof response.data === 'string') {
-        responseText = response.data;
-      } else if (response.data.text) {
-        responseText = response.data.text;
-      } else if (response.data.message) {
-        responseText = response.data.message;
-      } else {
-        responseText = JSON.stringify(response.data);
       }
-      
-      addMessage(responseText, 'assistant');
-      hideError();
-    } else if (response && response.error) {
-      handleError(response.error);
+    });
+    
+    hideTyping();
+    
+    if (response && response.success && response.data) {
+      const aiResponse = response.data.text || response.data.message || JSON.stringify(response.data);
+      addMessage('assistant', aiResponse);
+      saveChatHistory();
     } else {
-      showError('No response from AI. Please try again.');
+      const errorMsg = response?.error || 'Failed to get response';
+      addMessage('assistant', `❌ Error: ${errorMsg}`);
+      showStatus('error', errorMsg);
     }
   } catch (error) {
     hideTyping();
-    handleError(error.message);
+    console.error('Chat error:', error);
+    addMessage('assistant', `❌ Error: ${error.message}`);
+    showStatus('error', error.message);
   } finally {
-    isLoading = false;
-    sendBtn.disabled = false;
+    isProcessing = false;
   }
 }
 
-// Handle errors
-function handleError(error) {
-  console.error('AI Error:', error);
-
-  // Check if it's a 401 error with OpenRouter
-  if (error.includes('401') || error.includes('unauthorized')) {
-    // Try to detect if user is using free models
-    const selectedModel = modelSelect.value;
-    const freeModels = [
-      'meta-llama/llama-3-8b-instruct',
-      'google/gemma-7b-it',
-      'mistralai/mistral-7b-instruct',
-      'openchat/openchat-7b'
-    ];
-
-    if (freeModels.includes(selectedModel)) {
-      showError('Free models don\'t require API keys, but may have rate limits. Try again or select a different model.');
-      addMessage('I encountered a rate limit. Please try again in a moment or select a different free model.', 'assistant');
-    } else {
-      showError('API authentication failed. Please add your API key in Settings.');
-      addMessage('Please configure your API key in Settings (⚙️ button) to use this model.', 'assistant');
-    }
-  } else {
-    showError(error);
-    addMessage('I encountered an error: ' + error, 'assistant');
-  }
-}
-
-// Add message to chat
-function addMessage(text, role) {
-  const messageDiv = document.createElement('div');
-  messageDiv.className = `message ${role}`;
-
+function addMessage(role, content) {
+  const messagesDiv = document.getElementById('chatMessages');
+  const messageEl = document.createElement('div');
+  messageEl.className = `message ${role}`;
+  
   const avatar = document.createElement('div');
   avatar.className = 'avatar';
-  avatar.textContent = role === 'user' ? '👤' : '✨';
-
-  const content = document.createElement('div');
-  content.className = 'message-content';
-  content.textContent = text;
-
-  messageDiv.appendChild(avatar);
-  messageDiv.appendChild(content);
-
-  messagesContainer.appendChild(messageDiv);
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  avatar.textContent = role === 'user' ? '👤' : '🤖';
+  
+  const contentEl = document.createElement('div');
+  contentEl.className = 'message-content';
+  contentEl.textContent = content;
+  
+  messageEl.appendChild(avatar);
+  messageEl.appendChild(contentEl);
+  messagesDiv.appendChild(messageEl);
+  
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
-// Show typing indicator
 function showTyping() {
-  const typingDiv = document.createElement('div');
-  typingDiv.className = 'message assistant';
-  typingDiv.id = 'typing-indicator';
-
+  const messagesDiv = document.getElementById('chatMessages');
+  const typingEl = document.createElement('div');
+  typingEl.className = 'message assistant';
+  typingEl.id = 'typing-indicator';
+  
   const avatar = document.createElement('div');
   avatar.className = 'avatar';
-  avatar.textContent = '✨';
-
-  const content = document.createElement('div');
-  content.className = 'message-content';
-
-  const typing = document.createElement('div');
-  typing.className = 'typing';
-  typing.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
-
-  content.appendChild(typing);
-  typingDiv.appendChild(avatar);
-  typingDiv.appendChild(content);
-
-  messagesContainer.appendChild(typingDiv);
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  avatar.textContent = '🤖';
+  
+  const typingDiv = document.createElement('div');
+  typingDiv.className = 'typing';
+  typingDiv.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+  
+  typingEl.appendChild(avatar);
+  typingEl.appendChild(typingDiv);
+  messagesDiv.appendChild(typingEl);
+  
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
-// Hide typing indicator
 function hideTyping() {
-  const typing = document.getElementById('typing-indicator');
-  if (typing) typing.remove();
+  const typingEl = document.getElementById('typing-indicator');
+  if (typingEl) typingEl.remove();
 }
 
-// Show error
-function showError(message) {
-  errorMsg.textContent = message;
-  errorMsg.classList.add('show');
-  setTimeout(() => hideError(), 5000);
+function saveChatHistory() {
+  const messages = [];
+  document.querySelectorAll('#chatMessages .message').forEach(msg => {
+    const role = msg.classList.contains('user') ? 'user' : 'assistant';
+    const content = msg.querySelector('.message-content')?.textContent;
+    if (content) messages.push({ role, content });
+  });
+  chrome.storage.local.set({ chatHistory: messages });
 }
 
-// Hide error
-function hideError() {
-  errorMsg.classList.remove('show');
+function loadChatHistory() {
+  chrome.storage.local.get(['chatHistory'], (result) => {
+    if (result.chatHistory && result.chatHistory.length > 0) {
+      result.chatHistory.forEach(msg => {
+        addMessage(msg.role, msg.content);
+      });
+    } else {
+      // Show welcome message
+      addMessage('assistant', '👋 Hello! I\'m your AI assistant. How can I help you today?');
+    }
+  });
 }
 
-// Hide welcome screen
-function hideWelcome() {
-  if (!conversationStarted) {
-    welcomeScreen.style.display = 'none';
-    conversationStarted = true;
+
+// Page Actions
+async function handlePageAction(action) {
+  if (isProcessing) return;
+  
+  showStatus('success', 'Processing...');
+  isProcessing = true;
+  
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    
+    if (!tab || tab.url.startsWith('chrome://') || tab.url.startsWith('edge://')) {
+      showStatus('error', 'Cannot access this page. Please navigate to a regular webpage.');
+      isProcessing = false;
+      return;
+    }
+    
+    // Ensure content script is injected
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: ['contentScript.js']
+      });
+      await new Promise(resolve => setTimeout(resolve, 100));
+    } catch (e) {
+      console.log('Content script already injected or failed:', e);
+    }
+    
+    let content = '';
+    let instruction = '';
+    
+    switch (action) {
+      case 'summarize-page':
+        const pageResponse = await chrome.tabs.sendMessage(tab.id, { type: 'EXTRACT_PAGE_CONTENT' });
+        content = pageResponse.content;
+        instruction = 'Please summarize the key points of this webpage:';
+        break;
+        
+      case 'explain-selection':
+        const selectionResponse = await chrome.tabs.sendMessage(tab.id, { type: 'EXTRACT_SELECTED_TEXT' });
+        content = selectionResponse.text;
+        if (!content || content.trim().length === 0) {
+          showStatus('error', 'Please select some text on the page first.');
+          isProcessing = false;
+          return;
+        }
+        instruction = 'Please explain this text in simple terms:';
+        break;
+        
+      case 'extract-points':
+        const pointsResponse = await chrome.tabs.sendMessage(tab.id, { type: 'EXTRACT_PAGE_CONTENT' });
+        content = pointsResponse.content;
+        instruction = 'Extract the main bullet points from this content:';
+        break;
+        
+      case 'improve-text':
+        const improveResponse = await chrome.tabs.sendMessage(tab.id, { type: 'EXTRACT_SELECTED_TEXT' });
+        content = improveResponse.text;
+        if (!content || content.trim().length === 0) {
+          showStatus('error', 'Please select some text to improve.');
+          isProcessing = false;
+          return;
+        }
+        instruction = 'Please improve this text (fix grammar, enhance clarity):';
+        break;
+    }
+    
+    if (!content || content.trim().length === 0) {
+      showStatus('error', 'No content found to process.');
+      isProcessing = false;
+      return;
+    }
+    
+    // Switch to chat tab and show the request
+    switchTab('chat');
+    addMessage('user', `${instruction}\n\n${content.substring(0, 200)}${content.length > 200 ? '...' : ''}`);
+    showTyping();
+    
+    const modelSelect = document.getElementById('modelSelect');
+    const selectedModel = modelSelect.value;
+    
+    const response = await chrome.runtime.sendMessage({
+      type: 'AI_REQUEST',
+      payload: {
+        prompt: `${instruction}\n\n${content}`,
+        model: selectedModel,
+        selectedModel: selectedModel,
+        provider: 'openrouter',
+        maxTokens: 2000,
+        temperature: 0.7
+      }
+    });
+    
+    hideTyping();
+    
+    if (response && response.success && response.data) {
+      const aiResponse = response.data.text || response.data.message || JSON.stringify(response.data);
+      addMessage('assistant', aiResponse);
+      saveChatHistory();
+      showStatus('success', 'Done!');
+    } else {
+      const errorMsg = response?.error || 'Failed to process';
+      addMessage('assistant', `❌ Error: ${errorMsg}`);
+      showStatus('error', errorMsg);
+    }
+  } catch (error) {
+    hideTyping();
+    console.error('Page action error:', error);
+    showStatus('error', error.message);
+  } finally {
+    isProcessing = false;
   }
 }
 
-// Handle PDF upload
-function handlePDFUpload() {
-  const pdfInput = document.getElementById('pdfInput');
-  pdfInput.click();
+// File Upload Functions
+async function handlePDFUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
   
-  pdfInput.onchange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  if (file.size > 10 * 1024 * 1024) {
+    showStatus('error', 'PDF file is too large (max 10MB)');
+    return;
+  }
+  
+  showStatus('success', `Processing PDF: ${file.name}...`);
+  isProcessing = true;
+  
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
     
-    if (file.size > 10 * 1024 * 1024) {
-      showError('PDF file too large. Max 10MB.');
-      return;
-    }
+    const response = await chrome.runtime.sendMessage({
+      type: 'PROCESS_PDF',
+      data: base64,
+      filename: file.name
+    });
     
-    showTyping();
-    hideWelcome();
-    
-    try {
-      const arrayBuffer = await file.arrayBuffer();
-      const response = await chrome.runtime.sendMessage({
-        type: 'PROCESS_PDF',
-        fileData: Array.from(new Uint8Array(arrayBuffer)),
-        fileName: file.name
+    if (response && response.success && response.text) {
+      switchTab('chat');
+      addMessage('user', `📄 Uploaded PDF: ${file.name}\n\n✓ Extracted ${response.text.length} characters`);
+      
+      showTyping();
+      
+      // Auto-summarize
+      const modelSelect = document.getElementById('modelSelect');
+      const selectedModel = modelSelect.value;
+      
+      const aiResponse = await chrome.runtime.sendMessage({
+        type: 'AI_REQUEST',
+        payload: {
+          prompt: `Please summarize this PDF document:\n\n${response.text}`,
+          model: selectedModel,
+          selectedModel: selectedModel,
+          provider: 'openrouter',
+          maxTokens: 2000,
+          temperature: 0.7
+        }
       });
       
       hideTyping();
       
-      if (response && response.success && response.text) {
-        addMessage(`Extracted text from ${file.name}:\n\n${response.text.substring(0, 500)}...`, 'assistant');
-        userInput.value = `Summarize this PDF content:\n\n${response.text}`;
-        userInput.focus();
-      } else {
-        showError(response.error || 'Failed to process PDF');
+      if (aiResponse && aiResponse.success && aiResponse.data) {
+        const summary = aiResponse.data.text || aiResponse.data.message || JSON.stringify(aiResponse.data);
+        addMessage('assistant', summary);
+        saveChatHistory();
+        showStatus('success', 'PDF processed successfully!');
       }
-    } catch (error) {
-      hideTyping();
-      showError('PDF processing error: ' + error.message);
+    } else {
+      showStatus('error', response?.error || 'Failed to process PDF');
     }
-    
-    pdfInput.value = '';
-  };
+  } catch (error) {
+    console.error('PDF upload error:', error);
+    showStatus('error', error.message);
+  } finally {
+    isProcessing = false;
+    event.target.value = '';
+  }
 }
 
-// Handle image upload for OCR
-function handleImageUpload() {
-  const imageInput = document.getElementById('imageInput');
-  imageInput.click();
+async function handleImageUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
   
-  imageInput.onchange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  if (file.size > 5 * 1024 * 1024) {
+    showStatus('error', 'Image file is too large (max 5MB)');
+    return;
+  }
+  
+  showStatus('success', `Processing image: ${file.name}...`);
+  isProcessing = true;
+  
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
     
-    if (file.size > 5 * 1024 * 1024) {
-      showError('Image file too large. Max 5MB.');
-      return;
+    const response = await chrome.runtime.sendMessage({
+      type: 'PROCESS_OCR',
+      data: base64,
+      filename: file.name
+    });
+    
+    if (response && response.success && response.text) {
+      switchTab('chat');
+      addMessage('user', `🖼️ Uploaded image: ${file.name}`);
+      addMessage('assistant', `✓ Extracted text:\n\n${response.text}`);
+      saveChatHistory();
+      showStatus('success', 'Text extracted successfully!');
+    } else {
+      showStatus('error', response?.error || 'Failed to process image');
     }
-    
-    showTyping();
-    hideWelcome();
-    
-    try {
-      const arrayBuffer = await file.arrayBuffer();
-      const response = await chrome.runtime.sendMessage({
-        type: 'PROCESS_OCR',
-        fileData: Array.from(new Uint8Array(arrayBuffer)),
-        fileType: file.type,
-        fileName: file.name
-      });
-      
-      hideTyping();
-      
-      if (response && response.success && response.text) {
-        addMessage(`Extracted text from ${file.name}:\n\n${response.text}`, 'assistant');
-        userInput.value = `Process this extracted text:\n\n${response.text}`;
-        userInput.focus();
-      } else {
-        showError(response.error || 'Failed to process image');
-      }
-    } catch (error) {
-      hideTyping();
-      showError('OCR processing error: ' + error.message);
-    }
-    
-    imageInput.value = '';
-  };
+  } catch (error) {
+    console.error('Image upload error:', error);
+    showStatus('error', error.message);
+  } finally {
+    isProcessing = false;
+    event.target.value = '';
+  }
+}
+
+// Status Messages
+function showStatus(type, message) {
+  const statusMsg = document.getElementById('statusMsg');
+  statusMsg.textContent = message;
+  statusMsg.className = `status-msg ${type} show`;
+  
+  setTimeout(() => {
+    statusMsg.classList.remove('show');
+  }, 3000);
 }
 
