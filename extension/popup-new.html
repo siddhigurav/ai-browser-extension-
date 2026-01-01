@@ -437,21 +437,21 @@
         <h2>How can I help you today?</h2>
         <p>Choose a suggestion below or type your own question</p>
         <div class="suggestions">
-          <div class="suggestion" data-action="summarize">
+          <div class="suggestion" data-prompt="Summarize this page">
             <div class="suggestion-icon">📄</div>
             <div class="suggestion-text">Summarize page</div>
           </div>
-          <div class="suggestion" data-action="explain">
+          <div class="suggestion" data-prompt="Explain the selected text">
             <div class="suggestion-icon">💡</div>
             <div class="suggestion-text">Explain selection</div>
           </div>
-          <div class="suggestion" data-action="pdf">
-            <div class="suggestion-icon">📑</div>
-            <div class="suggestion-text">Process PDF</div>
+          <div class="suggestion" data-prompt="Help me write an email">
+            <div class="suggestion-icon">✍️</div>
+            <div class="suggestion-text">Write an email</div>
           </div>
-          <div class="suggestion" data-action="ocr">
-            <div class="suggestion-icon">🖼️</div>
-            <div class="suggestion-text">Extract from Image</div>
+          <div class="suggestion" data-prompt="Translate to English">
+            <div class="suggestion-icon">🌐</div>
+            <div class="suggestion-text">Translate text</div>
           </div>
         </div>
       </div>
@@ -461,10 +461,8 @@
       <div class="quick-actions" id="quickActions">
         <button class="action-btn" data-action="summarize">📄 Summarize</button>
         <button class="action-btn" data-action="explain">💡 Explain</button>
+        <button class="action-btn" data-action="translate">🌐 Translate</button>
         <button class="action-btn" data-action="improve">✨ Improve</button>
-        <button class="action-btn" data-action="extract">🎯 Extract Points</button>
-        <button class="action-btn" data-action="pdf">📑 PDF</button>
-        <button class="action-btn" data-action="ocr">🖼️ OCR</button>
       </div>
       <div class="input-wrapper">
         <textarea class="input-box" id="userInput" placeholder="Ask me anything..." rows="1"></textarea>
@@ -475,10 +473,6 @@
     </div>
   </div>
 
-  <!-- Hidden file inputs -->
-  <input type="file" id="pdfInput" accept=".pdf" style="display: none;">
-  <input type="file" id="imageInput" accept="image/*" style="display: none;">
-
-  <script src="popup.js"></script>
+  <script src="popup-modern.js"></script>
 </body>
 </html>

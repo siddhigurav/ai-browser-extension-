@@ -449,11 +449,23 @@ export async function callModel(payload = {}, token = '', options = {}) {
       'google/gemma-7b-it',
       'nousresearch/nous-hermes-2-mixtral-8x7b-dpo',
       'microsoft/phi-3-medium-128k-instruct',
-      'meta-llama/llama-3-8b-instruct'
+      'meta-llama/llama-3-8b-instruct',
+      'nova-2-lite',
+      'qwen/qwen-vl-max'
     ];
     
+    // For free models, ALWAYS omit the token (even if provided)
+    // For paid models, use the token if provided, otherwise throw error
     const isFreeModel = freeModels.includes(model);
-    const finalToken = isFreeModel ? null : token;
+    let finalToken = null;
+    
+    if (!isFreeModel && !token) {
+      throw new Error(`Model "${model}" requires an API token. Please provide your OpenRouter API key in the extension settings.`);
+    }
+    
+    if (!isFreeModel && token) {
+      finalToken = token;
+    }
 
     try {
       // Build headers

@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -62,12 +62,12 @@
           <div id="panel-pdf" class="panel">
             <div class="section">
               <h3>PDF Processing</h3>
-              <input type="file" id="pdfFile" accept=".pdf" class="file" />
+              <input type="file" id="pdfFile" accept=".pdf" class="file" title="Select a PDF file to process" />
               <div class="action-buttons">
                 <button id="processPdf" class="btn full-width">Process PDF</button>
               </div>
               <textarea id="pdfOutput" class="textarea" placeholder="PDF content will appear here..."></textarea>
-              <div style="margin-top: 15px;">
+              <div class="pdf-question-section">
                 <input type="text" id="pdfQuestion" class="input" placeholder="Ask a question about the PDF..." />
                 <button id="askPdfBtn" class="btn full-width">Ask About PDF</button>
               </div>
@@ -92,7 +92,7 @@
           <div id="panel-ocr" class="panel">
             <div class="section">
               <h3>Image OCR Processing</h3>
-              <input type="file" id="imageFile" accept="image/*" class="file" />
+              <input type="file" id="imageFile" accept="image/*" class="file" title="Select an image file for OCR processing" />
               <div class="action-buttons">
                 <button id="processImage" class="btn full-width">Process Image</button>
                 <button id="captureScreenshot" class="btn ghost full-width">Capture Screenshot</button>

@@ -92,11 +92,20 @@ document.addEventListener('DOMContentLoaded', () => {
       detectedProviderEl.textContent = `Provider: Auto (not detected)`;
     }
 
-    // Validation
+    // Validation: only enforce strict validation if explicit provider chosen
     let validation = { ok: true, message: '' };
     // If explicit provider chosen, validate token for that provider
-    if (explicit) validation = validateTokenForProvider(explicit, token);
-    else if (detected) validation = validateTokenForProvider(detected, token);
+    if (explicit) {
+      validation = validateTokenForProvider(explicit, token);
+    }
+    // If Auto selected and a provider is auto-detected, show info but allow saving
+    else if (detected && detected !== 'openrouter') {
+      validation = validateTokenForProvider(detected, token);
+    }
+    // For OpenRouter auto-detected or Auto with no detection, allow empty token
+    else {
+      validation = { ok: true, message: '' };
+    }
 
     if (!validation.ok) {
       validationMessageEl.textContent = validation.message;
@@ -116,11 +125,14 @@ document.addEventListener('DOMContentLoaded', () => {
   saveBtn.addEventListener('click', () => {
     const apiToken = apiKeyInput.value ? apiKeyInput.value.trim() : '';
     const provider = providerSelect.value || '';
-    // If explicit provider is selected and token is invalid, prevent saving
-    const validation = provider ? validateTokenForProvider(provider, apiToken) : { ok: true };
-    if (!validation.ok) {
-      showStatus(validation.message, 3000);
-      return;
+    // Only validate strictly if an explicit provider is selected
+    // If provider is Auto (empty string), allow saving any token
+    if (provider && provider.trim().length) {
+      const validation = validateTokenForProvider(provider, apiToken);
+      if (!validation.ok) {
+        showStatus(validation.message, 3000);
+        return;
+      }
     }
     // Persist token and provider so background.js will pick them up
     chrome.storage.sync.set({ apiToken, provider }, () => {

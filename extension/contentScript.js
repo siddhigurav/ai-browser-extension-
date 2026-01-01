@@ -215,10 +215,67 @@
         }
         return;
       }
+
+      // Handle sidebar injection
+      if (msg && msg.type === 'INJECT_SIDEBAR') {
+        try {
+          injectSidebar();
+          sendResponse({ success: true });
+        } catch (error) {
+          console.error("Error injecting sidebar:", error);
+          sendResponse({ success: false, error: error.message });
+        }
+        return;
+      }
     } catch (err) {
       console.error('onMessage handler error', err);
     }
   });
+
+  // Function to inject the sidebar into the page
+  function injectSidebar() {
+    // Check if sidebar is already injected
+    if (document.getElementById('ai-sidebar')) {
+      console.log('Sidebar already injected');
+      return;
+    }
+
+    // Fetch the sidebar HTML
+    fetch(chrome.runtime.getURL('sidebar/index.html'))
+      .then(response => response.text())
+      .then(html => {
+        // Create a temporary container to parse HTML
+        const temp = document.createElement('div');
+        temp.innerHTML = html;
+
+        // Get the body content (skip the doctype and html tags)
+        const bodyContent = temp.querySelector('body').innerHTML;
+
+        // Create a container for the sidebar
+        const sidebarContainer = document.createElement('div');
+        sidebarContainer.id = 'ai-sidebar-container';
+        sidebarContainer.innerHTML = bodyContent;
+
+        // Inject into the page
+        document.body.appendChild(sidebarContainer);
+
+        // Load and inject sidebar CSS
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = chrome.runtime.getURL('sidebar/styles.css');
+        document.head.appendChild(link);
+
+        // Load and execute sidebar script
+        const scriptTag = document.createElement('script');
+        scriptTag.src = chrome.runtime.getURL('sidebar/script.js');
+        document.body.appendChild(scriptTag);
+
+        console.log('Sidebar injected successfully');
+      })
+      .catch(error => {
+        console.error('Failed to inject sidebar:', error);
+      });
+  }
   
   // Notify background script that content script is ready
   chrome.runtime.sendMessage({ type: 'CONTENT_SCRIPT_READY' }, (response) => {
