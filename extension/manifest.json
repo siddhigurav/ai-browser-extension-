@@ -1,5 +1,44 @@
 {
   "manifest_version": 3,
+  "name": "AI Sidebar Assistant",
+  "description": "Persistent AI sidebar assistant using OpenRouter free models.",
+  "version": "1.0.0",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "contextMenus",
+    "sidePanel"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "side_panel": {
+    "default_path": "sidebar.html"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "AI Sidebar"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["sidebar.css","sidebar.js","router.js","api.js","storage.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
+{
+  "manifest_version": 3,
   "name": "AI Assistant",
   "version": "1.0",
   "description": "An AI assistant embedded in a browser extension with summarization, code explanation, and chat capabilities.",

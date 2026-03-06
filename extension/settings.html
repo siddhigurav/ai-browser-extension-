@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AI Sidebar Settings</title>
+  <style>
+    body{font-family:Inter,system-ui; padding:16px; background:#fff; color:#0f172a}
+    label{display:block;margin-top:12px;font-weight:600}
+    input,select{width:100%;padding:8px;margin-top:6px;border-radius:6px;border:1px solid #e6e6e6}
+    button{margin-top:12px;padding:8px 12px;border-radius:6px;border:none;background:#2563eb;color:#fff}
+  </style>
+</head>
+<body>
+  <h2>Settings</h2>
+  <label>OpenRouter API Key</label>
+  <input id="apiKey" placeholder="sk-...">
+
+  <label>Default Mode</label>
+  <select id="modeSelect">
+    <option value="FAST">FAST</option>
+    <option value="SMART">SMART</option>
+    <option value="CODE">CODE</option>
+  </select>
+
+  <div>
+    <button id="saveBtn">Save</button>
+    <button id="clearHistoryBtn" style="background:#ef4444;margin-left:8px">Clear Chat History</button>
+  </div>
+
+  <script src="storage.js"></script>
+  <script src="settings.js"></script>
+</body>
+</html>

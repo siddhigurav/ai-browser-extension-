@@ -1,0 +1,30 @@
+:root{
+  --bg: #ffffff;
+  --muted: #6b7280;
+  --card: #f8fafc;
+  --accent: #2563eb;
+}
+*{box-sizing:border-box;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial}
+body{margin:0;background:var(--bg);color:#0f172a}
+.sidebar-root{display:flex;flex-direction:column;height:100vh;width:100%;max-width:400px}
+.top{display:flex;align-items:center;justify-content:space-between;padding:12px;border-bottom:1px solid #eef2f7}
+.title{font-weight:600;font-size:16px}
+.controls{display:flex;gap:8px;align-items:center}
+select{padding:6px;border-radius:6px;border:1px solid #e6eef8;background:#fff}
+button{background:#fff;border:1px solid #e6e6e6;padding:6px 8px;border-radius:6px;cursor:pointer}
+.chat-area{flex:1;padding:12px;overflow:auto}
+#messages{display:flex;flex-direction:column;gap:10px}
+.msg{background:var(--card);padding:10px;border-radius:10px;box-shadow:0 1px 2px rgba(16,24,40,0.03)}
+.msg.user{align-self:flex-end;background:#e6f0ff}
+.msg.assistant{align-self:flex-start;background:#f7f7fb}
+.bottom{padding:10px;border-top:1px solid #eef2f7}
+.quick-actions{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.quick-actions button{padding:6px 8px;background:#f3f4f6;border-radius:6px;border:1px solid #e6e6e6}
+.composer{display:flex;gap:8px}
+textarea{flex:1;padding:8px;border-radius:8px;border:1px solid #e6e6e6;resize:vertical}
+#sendBtn{background:var(--accent);color:#fff;border:none;padding:8px 12px;border-radius:8px}
+
+@media (max-width:480px){
+  .sidebar-root{max-width:100vw}
+  .title{font-size:14px}
+}

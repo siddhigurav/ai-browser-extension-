@@ -1,3 +1,56 @@
+// Background service worker for the AI Sidebar Assistant
+
+chrome.runtime.onInstalled.addListener(() => {
+  // create context menus for selection actions
+  chrome.contextMenus.removeAll(() => {
+    const items = [
+      { id: 'explain', title: 'Explain with AI' },
+      { id: 'summarize', title: 'Summarize with AI' },
+      { id: 'rewrite', title: 'Rewrite with AI' },
+      { id: 'translate', title: 'Translate with AI' }
+    ];
+    for (const it of items) {
+      chrome.contextMenus.create({ id: it.id, title: it.title, contexts: ['selection'] });
+    }
+  });
+});
+
+// Forward context menu actions to the sidebar and store the last selection
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+  if (!info.selectionText) return;
+  const payload = {
+    action: 'contextAction',
+    type: info.menuItemId,
+    text: info.selectionText,
+    pageUrl: info.pageUrl
+  };
+  chrome.storage.local.set({ lastSelection: payload });
+  chrome.runtime.sendMessage(payload);
+});
+
+// Receive messages from content script or popup
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (!msg || !msg.action) return;
+  if (msg.action === 'selection') {
+    const payload = { action: 'selection', text: msg.text };
+    chrome.storage.local.set({ lastSelection: payload });
+    chrome.runtime.sendMessage(payload);
+    sendResponse({ ok: true });
+  }
+  if (msg.action === 'summarizePage') {
+    // store and forward
+    chrome.storage.local.set({ lastPageSummaryRequest: { tabId: sender.tab && sender.tab.id } });
+    chrome.runtime.sendMessage({ action: 'summarizePage', tabId: sender.tab && sender.tab.id });
+    sendResponse({ ok: true });
+  }
+  // forward page content coming from content script to sidebar
+  if (msg.action === 'pageContent') {
+    // msg contains { title, text }
+    chrome.storage.local.set({ lastPageContent: msg });
+    chrome.runtime.sendMessage({ action: 'pageContent', title: msg.title, text: msg.text });
+    sendResponse({ ok: true });
+  }
+});
 // background.js - service worker (module) handling API calls and persistent tasks
 // Import api client statically to avoid dynamic import issues in ServiceWorkerGlobalScope
 import { callModel } from './api/apiClient.js';

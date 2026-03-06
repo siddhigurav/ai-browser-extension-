@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AI Assistant</title>
+  <link rel="stylesheet" href="sidebar.css">
+</head>
+<body>
+  <div class="sidebar-root">
+    <header class="top">
+      <div class="title">AI Assistant</div>
+      <div class="controls">
+        <select id="modeSelect" aria-label="Mode selector">
+          <option value="FAST">FAST</option>
+          <option value="SMART">SMART</option>
+          <option value="CODE">CODE</option>
+        </select>
+        <button id="settingsBtn" title="Settings">⚙</button>
+      </div>
+    </header>
+
+    <main class="chat-area" id="chatArea">
+      <div id="messages"></div>
+    </main>
+
+    <div class="bottom">
+      <div class="quick-actions">
+        <button data-action="explain">Explain</button>
+        <button data-action="summarize">Summarize</button>
+        <button data-action="rewrite">Rewrite</button>
+        <button data-action="translate">Translate</button>
+        <button id="summarizePage">Summarize Page</button>
+      </div>
+      <div class="composer">
+        <textarea id="inputBox" placeholder="Ask or paste text..." rows="2"></textarea>
+        <button id="sendBtn">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="storage.js"></script>
+  <script src="router.js"></script>
+  <script src="api.js"></script>
+  <script src="sidebar.js"></script>
+</body>
+</html>

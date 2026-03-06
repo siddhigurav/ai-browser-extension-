@@ -1,3 +1,23 @@
+document.getElementById('openSidebar').addEventListener('click', () => {
+  const url = chrome.runtime.getURL('sidebar.html');
+  try {
+    if (chrome && chrome.tabs && chrome.tabs.create) {
+      chrome.tabs.create({ url });
+    } else {
+      window.open(url, '_blank');
+    }
+  } catch (e) { window.open(url, '_blank'); }
+});
+document.getElementById('openSettings').addEventListener('click', () => {
+  const url = chrome.runtime.getURL('settings.html');
+  try {
+    if (chrome && chrome.tabs && chrome.tabs.create) {
+      chrome.tabs.create({ url });
+    } else {
+      window.open(url, '_blank');
+    }
+  } catch (e) { window.open(url, '_blank'); }
+});
 // AI Assistant - Popup Script
 
 // State Management
