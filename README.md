@@ -1,188 +1,186 @@
 # AI Assistant Browser Extension
 
-This is a browser extension that provides AI-powered assistance directly in your browser. The extension can summarize text, explain code, extract key points, improve text, and chat with an AI assistant.
+A modern AI-powered browser extension that brings powerful AI capabilities directly to your browser. Chat with AI, summarize content, explain code, process documents, and more - all with a beautiful, intuitive interface.
 
-## Features
+## 🌟 Features
 
-- **Text Summarization**: Condense long articles or documents into concise summaries
-- **Code Explanation**: Get plain English explanations of code logic
-- **Key Point Extraction**: Extract important points and action items from content
-- **Text Improvement**: Enhance clarity and readability while preserving meaning
-- **AI Chat**: Have conversations with an AI assistant
-- **Multi-Model Support**: Choose from 30+ AI models across different providers
-- **Site Analysis**: Check domain reputation, age, and safety status
-- **PDF Processing**: Extract text from PDF documents
-- **OCR**: Extract text from images
-- **Sider AI-Style Sidebar**: Modern sidebar interface with all features accessible
+- **💬 AI Chat**: Have natural conversations with powerful AI models
+- **📄 Text Summarization**: Condense long articles into concise summaries
+- **💡 Code Explanation**: Get plain English explanations of code
+- **🎯 Key Point Extraction**: Extract important points from any content
+- **✨ Text Improvement**: Enhance clarity and readability
+- **📁 PDF Processing**: Extract and process text from PDF documents
+- **🖼️ OCR**: Extract text from images
+- **🌐 Page Analysis**: Analyze and summarize web pages
+- **🎨 Modern UI**: Beautiful dark theme with smooth animations
+- **🚀 Free Models**: Access free AI models from OpenRouter
 
-## Project Structure
+## 📋 Quick Start
 
-```
-├── extension/              # Browser extension code
-│   ├── background/         # Service worker and messaging
-│   ├── sidebar/            # UI components
-│   ├── src/content/        # Content scripts
-│   └── utils/              # Utility functions
-└── server/                 # Backend server
-   ├── routers/            # API endpoints
-   ├── services/           # LLM providers
-   └── requirements.txt    # Python dependencies
-```
+### 1. Install the Extension
 
-## Installation
+1. Download or clone this repository
+2. Open Chrome/Edge and go to `chrome://extensions/` (or `edge://extensions/`)
+3. Enable **Developer mode** (toggle in top right)
+4. Click **Load unpacked** and select the `extension` folder
+5. The extension icon should appear in your toolbar
 
-### Extension Setup
+### 2. Get Your Free API Key
 
-1. Navigate to the extension directory:
-   ```
-   cd extension
-   ```
+The extension uses **OpenRouter** to access free AI models:
 
-2. Install dependencies:
-   ```
-   npm install
-   ```
+1. Visit [https://openrouter.ai/keys](https://openrouter.ai/keys)
+2. Sign up for a free account (no credit card required)
+3. Create an API key
+4. Copy your key (starts with `sk-or-v1-...`)
 
-### Server Setup
-
-1. Navigate to the server directory:
-   ```
-   cd server
-   ```
-
-2. Install Python dependencies:
-   ```
-   pip install -r requirements.txt
-   ```
-
-## Usage
-
-### Loading the Extension in Chrome
-
-1. Open Chrome and go to `chrome://extensions/`
-2. Enable "Developer mode" in the top right corner
-3. Click "Load unpacked" and select the `extension` directory
-4. The extension icon should now appear in your toolbar
-
-### Configuring API Keys
+### 3. Configure the Extension
 
 1. Click the extension icon in your browser toolbar
-2. Click the gear icon or "Options" to open settings
-3. Enter your API token from one of the supported providers:
-   - **GROQ**: Free tier available at https://console.groq.com/keys
-   - **OpenAI**: https://platform.openai.com/api-keys
-   - **Hugging Face**: https://huggingface.co/settings/tokens
-   - **OpenRouter**: https://openrouter.ai/ (free OpenRouter models are available and do not require a key; provide an API key to use paid/private models)
-4. Select your preferred model from the dropdown menu
-5. Click "Save"
+2. Click the ⚙️ **Settings** button
+3. Paste your OpenRouter API key
+4. Select **OpenRouter** as the provider
+5. Click **Save key**
 
-### Running the Server
+### 4. Start Using!
 
-1. Navigate to the server directory:
-   ```
-   cd server
-   ```
+1. Click the extension icon to open the popup
+2. Choose from three tabs:
+   - **💬 Chat**: Ask questions, get help, have conversations
+   - **🌐 Page**: Summarize or analyze web pages
+   - **📁 Files**: Upload PDFs or images for processing
+3. Select your preferred AI model
+4. Start chatting or processing content!
 
-2. Start the server:
-   ```
-   python app.py
-   ```
+## 🤖 Available Models
 
-3. The server will start on `http://localhost:5000`
+### Free Models (via OpenRouter)
+- **Llama 3 8B Instruct** - Fast, versatile
+- **Gemma 7B IT** - Google's efficient model
+- **Mistral 7B Instruct** - Strong reasoning
+- **OpenChat 7B** - Conversational AI
 
-### Using the Extension
+All models are completely free with your OpenRouter account!
 
-You can use the extension in two ways:
+## 🎯 Usage Examples
 
-#### Popup Interface (Default)
-1. Click the extension icon in your browser toolbar
-2. Select your preferred AI model from the dropdown
-3. Enter text in the input area
-4. Select one of the available actions:
-   - **Summarize**: Create a concise summary of your text
-   - **Chat**: Have a conversation with the AI assistant
-   - **Explain Code**: Get a plain English explanation of code
-   - **Extract Points**: Extract key points and action items
-   - **Improve Text**: Enhance clarity and readability
-   - **Process PDF**: Extract text from PDF files
-   - **OCR Image**: Extract text from images
-   - **Site Info**: Get information about the current website
-5. View the results in the output area
+### Chat with AI
+1. Click the extension icon
+2. Go to **Chat** tab
+3. Type your question: "Explain quantum computing in simple terms"
+4. Get instant, intelligent responses
 
-#### Sider AI-Style Sidebar Interface
-1. Press `Alt+S` on any webpage to toggle the sidebar
-2. Or right-click anywhere on a webpage and select "Toggle AI Assistant Sidebar"
-3. Use the sidebar's tabbed interface to access all features:
-   - **Chat**: Conversational AI assistant
-   - **Summaries**: Text summarization
-   - **Explain**: Code explanation
-   - **PDF**: PDF processing
-   - **Web**: Web page analysis
-   - **Image**: OCR processing
-4. The sidebar provides a more immersive experience with all features in one place
+### Summarize a Web Page
+1. Navigate to any article or page
+2. Click the extension icon
+3. Go to **Page** tab
+4. Click **Summarize Page**
+5. Get a concise summary in seconds
 
-## Supported Models
+### Explain Selected Text
+1. Select text on any webpage
+2. Click the extension icon
+3. Go to **Page** tab
+4. Click **Explain Selection**
+5. Get a clear explanation
 
-The extension supports over 30 AI models across multiple providers:
+### Process a PDF
+1. Click the extension icon
+2. Go to **Files** tab
+3. Click **Upload PDF Document**
+4. Select your PDF file
+5. Get automatic text extraction and summary
 
-### GROQ Models
-- Llama 3.1 8B/70B
-- Llama 3.2 1B/3B/11B/90B
-- Llama 3.3 70B
-- Mixtral 8x7B
-- Gemma 7B/9B
+## 🔧 Configuration Options
 
-### OpenAI Models
-- GPT-4o Mini/Turbo/4
-- GPT-3.5 Turbo
+### Settings Page
+Access via the ⚙️ button in the popup:
 
-### Hugging Face Models
-- GPT-2
-- OPT 1.3B/6.7B
-- FLAN-T5 Series
-- GPT-J 6B
-- GPT-Neo Series
+- **Provider**: Choose AI provider (OpenRouter recommended)
+- **API Key**: Your API key for the selected provider
+- **Model Selection**: Pick your preferred AI model
 
-### Advanced Models
-- Nova 2 Lite
-- Trinity Mini
-- OLMo 3 32B Think
-- Nemotron Nano 12B 2 VL
-- GPT OSS 20B
-- Gemma 3N Series
-- DeepSeek Chimera Series
-- Gemini 2.0 Flash
+### Supported Providers
+- **OpenRouter** (Recommended) - Free models available
+- **OpenAI** - Requires paid API key
+- **Hugging Face** - Requires API token
+- **GROQ** - Requires API key
 
-## Development
+## 💡 Tips & Tricks
 
-### Extension Development
+1. **No API Key Yet?** The extension will show a helpful notice and guide you to get one
+2. **Rate Limits**: Free OpenRouter accounts have generous limits for personal use
+3. **Model Selection**: Try different models to find your favorite
+4. **Chat History**: Your conversations are saved locally in the browser
+5. **Keyboard Shortcuts**: Click the extension icon or use the popup for quick access
 
-The extension is built with vanilla JavaScript and uses:
-- Content scripts to interact with web pages
-- Background service workers for message handling
-- A popup UI for user interaction
-- A Sider AI-style sidebar for immersive experience
+## 🛠️ Troubleshooting
 
-### Server Development
+### "401 Unauthorized" Error
+- Your API key is invalid or not configured
+- Go to Settings and add a valid OpenRouter API key
+- Make sure the key starts with `sk-or-v1-`
 
-The server is built with Python and Flask, providing REST API endpoints for:
-- LLM interactions
-- Text processing
-- Code analysis
-- PDF and OCR processing
+### Extension Not Visible
+- Make sure you loaded the extension in Developer Mode
+- Check that the extension is enabled in `chrome://extensions/`
+- Try reloading the extension
 
-## Future Enhancements
+### Chat Not Working
+- Verify your API key is saved in Settings
+- Check your internet connection
+- Try selecting a different model
 
-- Integration with additional LLM providers
-- Advanced RAG (Retrieval-Augmented Generation) capabilities
-- Enhanced site analysis with more security checks
-- Multi-language support
-- Voice input and output
-- Custom prompt templates
+### PDF Upload Fails
+- Ensure PDF is under 10MB
+- Try a different PDF file
+- Check browser console for error messages
 
-## Troubleshooting
+## 🔒 Privacy & Security
 
-- If the extension doesn't load, check that all dependencies are installed
-- If API calls fail, ensure the server is running on `http://localhost:5000`
-- For Python dependency issues, try creating a virtual environment before installing packages
-- If the sidebar doesn't appear, try refreshing the page or using the keyboard shortcut (`Alt+S`)
+- **Your data stays private**: API keys stored securely in Chrome's encrypted storage
+- **No tracking**: We don't collect or share your data
+- **Direct API calls**: Your queries go directly to the AI provider
+- **Local history**: Chat history stored only in your browser
+
+## 📚 Project Structure
+
+```
+├── extension/
+│   ├── api/                 # API client for LLM providers
+│   ├── background.js        # Service worker
+│   ├── contentScript.js     # Content script for page interaction
+│   ├── popup.html          # Main popup interface
+│   ├── popup.js            # Popup logic
+│   ├── options/            # Settings page
+│   ├── styles/             # CSS styles
+│   └── manifest.json       # Extension manifest
+├── server/                 # (Optional) Backend server
+└── README.md              # This file
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Feel free to:
+- Report bugs
+- Suggest features
+- Submit pull requests
+- Improve documentation
+
+## 📝 License
+
+This project is open source and available for personal and educational use.
+
+## 🙏 Acknowledgments
+
+- Built with Chrome Extension Manifest V3
+- Uses OpenRouter for free AI model access
+- Inspired by modern AI assistant interfaces
+
+## 📞 Support
+
+Having issues? Check the Troubleshooting section or open an issue on GitHub.
+
+---
+
+**Made with ❤️ for the AI community**

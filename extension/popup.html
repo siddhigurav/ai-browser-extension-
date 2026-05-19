@@ -431,6 +431,36 @@
     .btn-secondary:hover {
       background: var(--bg-darker);
     }
+
+    /* API Notice */
+    .api-notice {
+      padding: 8px 20px;
+      background: rgba(251, 191, 36, 0.1);
+      border-bottom: 1px solid rgba(251, 191, 36, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #fbbf24;
+    }
+
+    .api-notice a {
+      color: #fbbf24;
+      text-decoration: underline;
+      font-weight: 500;
+    }
+
+    .api-notice a:hover {
+      color: #fcd34d;
+    }
+
+    .notice-icon {
+      font-size: 14px;
+    }
+
+    .api-notice.hidden {
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -450,6 +480,11 @@
       <option value="mistralai/mistral-7b-instruct">Mistral 7B (Free)</option>
       <option value="openchat/openchat-7b">OpenChat 7B (Free)</option>
     </select>
+  </div>
+
+  <div class="api-notice hidden" id="apiNotice">
+    <span class="notice-icon">⚠️</span>
+    <span class="notice-text">OpenRouter API key required. <a href="#" id="setupLink">Set up now</a></span>
   </div>
 
   <div class="tabs">

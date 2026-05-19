@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -10,28 +10,41 @@
     <h2>AI Assistant Options</h2>
     
     <div class="note" id="keyNote">
-      Note: This extension supports OpenRouter API keys. Leave blank to use free OpenRouter models (no API key required).
+      <strong>🔑 API Key Setup:</strong><br>
+      This extension uses <strong>OpenRouter</strong> for free AI models. You need an API key to use the extension.<br>
+      <ol class="setup-list">
+        <li>Visit <a href="https://openrouter.ai/keys" target="_blank" rel="noopener" class="setup-link">https://openrouter.ai/keys</a></li>
+        <li>Sign up (free) and create an API key</li>
+        <li>Paste your key below and click "Save key"</li>
+        <li>Start using free models like Llama 3, Mistral, and Gemma!</li>
+      </ol>
+      <small class="setup-note">
+        💡 Free tier includes generous credits. No credit card required for basic usage.
+      </small>
     </div>
     
     <div class="model-section">
-      <h3>API Key (optional)</h3>
+      <h3>API Key Configuration</h3>
       <label>Provider
         <select id="providerSelect">
-          <option value="">Auto (detect from token or model)</option>
-          <option value="openrouter">OpenRouter</option>
+          <option value="openrouter">OpenRouter (Recommended)</option>
+          <option value="">Auto (detect from token)</option>
           <option value="openai">OpenAI</option>
           <option value="huggingface">Hugging Face</option>
           <option value="groq">GROQ</option>
         </select>
       </label>
       <label>API Key
-        <input id="apiKeyInput" placeholder="Enter API key (leave blank to use free models)" />
+        <input id="apiKeyInput" type="password" placeholder="sk-or-v1-... or openrouter-..." />
       </label>
       <div class="button-row">
         <button id="saveBtn">Save key</button>
         <button id="clearKeyBtn" class="btn-clear">Clear key</button>
       </div>
-      <div class="note">Your API key will be stored using Chrome extension storage. Only provide keys you control.</div>
+      <div class="note">
+        Your API key is stored securely in your browser using Chrome's secure storage. 
+        It is never shared with anyone except the AI provider you selected.
+      </div>
       <div id="detectedProvider" class="note detected-provider"></div>
       <div id="validationMessage" class="note validation-message"></div>
     </div>

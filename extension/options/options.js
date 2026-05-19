@@ -23,7 +23,12 @@ document.addEventListener('DOMContentLoaded', () => {
   chrome.storage.sync.get(['model', 'apiToken', 'provider'], (data) => {
     if (data.model) modelSelect.value = data.model;
     if (data.apiToken) apiKeyInput.value = data.apiToken;
-    if (data.provider) providerSelect.value = data.provider;
+    // Default to openrouter if no provider is set
+    if (data.provider) {
+      providerSelect.value = data.provider;
+    } else {
+      providerSelect.value = 'openrouter'; // Set default to OpenRouter
+    }
     // Update detection UI after restoring values
     setTimeout(updateDetectionUI, 50);
   });
@@ -55,25 +60,25 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!provider) return { ok: true, message: '' };
     const t = token || '';
     if (provider === 'openai') {
-      if (!t) return { ok: false, message: 'OpenAI selected but no API key provided.' };
+      if (!t) return { ok: false, message: 'OpenAI requires an API key.' };
       if (t.startsWith('sk-') || t.includes('openai')) return { ok: true, message: '' };
       return { ok: false, message: 'Invalid OpenAI token. It usually starts with "sk-".' };
     }
     if (provider === 'huggingface') {
-      if (!t) return { ok: false, message: 'Hugging Face selected but no API key provided.' };
+      if (!t) return { ok: false, message: 'Hugging Face requires an API key.' };
       if (t.startsWith('hf_')) return { ok: true, message: '' };
       return { ok: false, message: 'Invalid Hugging Face token. It should start with "hf_".' };
     }
     if (provider === 'groq') {
-      if (!t) return { ok: false, message: 'GROQ selected but no API key provided.' };
+      if (!t) return { ok: false, message: 'GROQ requires an API key.' };
       if (t.startsWith('gsk_')) return { ok: true, message: '' };
       return { ok: false, message: 'Invalid GROQ token. It should start with "gsk_".' };
     }
     if (provider === 'openrouter') {
-      // OpenRouter tokens are optional for free models — accept empty token
-      if (!t) return { ok: true, message: 'No OpenRouter token provided — free models will be used.' };
-      if (t.startsWith('openrouter-')) return { ok: true, message: '' };
-      return { ok: false, message: 'Invalid OpenRouter token. It usually starts with "openrouter-".' };
+      // OpenRouter requires an API key
+      if (!t) return { ok: false, message: 'OpenRouter requires an API key. Get one free at https://openrouter.ai/keys' };
+      if (t.startsWith('sk-or-') || t.startsWith('openrouter-')) return { ok: true, message: '✅ Valid OpenRouter token format' };
+      return { ok: false, message: 'Invalid OpenRouter token. It should start with "sk-or-" or "openrouter-".' };
     }
     return { ok: true, message: '' };
   }
@@ -85,35 +90,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const detected = detectProviderFromTokenAndModel(token, model, explicit);
 
     if (explicit) {
-      detectedProviderEl.textContent = `Provider (explicit): ${explicit}`;
+      detectedProviderEl.textContent = `Provider: ${explicit}`;
+      detectedProviderEl.style.color = '#10b981';
     } else if (detected) {
       detectedProviderEl.textContent = `Detected provider: ${detected}`;
+      detectedProviderEl.style.color = '#3b82f6';
     } else {
-      detectedProviderEl.textContent = `Provider: Auto (not detected)`;
+      detectedProviderEl.textContent = `Provider: Please select OpenRouter`;
+      detectedProviderEl.style.color = '#f59e0b';
     }
 
-    // Validation: only enforce strict validation if explicit provider chosen
+    // Validation: enforce strict validation for OpenRouter (default)
     let validation = { ok: true, message: '' };
-    // If explicit provider chosen, validate token for that provider
-    if (explicit) {
-      validation = validateTokenForProvider(explicit, token);
-    }
-    // If Auto selected and a provider is auto-detected, show info but allow saving
-    else if (detected && detected !== 'openrouter') {
-      validation = validateTokenForProvider(detected, token);
-    }
-    // For OpenRouter auto-detected or Auto with no detection, allow empty token
-    else {
-      validation = { ok: true, message: '' };
-    }
+    const providerToValidate = explicit || detected || 'openrouter';
+    validation = validateTokenForProvider(providerToValidate, token);
 
     if (!validation.ok) {
       validationMessageEl.textContent = validation.message;
+      validationMessageEl.style.color = '#ef4444';
       saveBtn.disabled = true;
     } else {
-      // show informational message when token missing for OpenRouter detected (allowed)
+      // show informational message
       if (validation.message) {
         validationMessageEl.textContent = validation.message;
+        validationMessageEl.style.color = '#10b981';
       } else {
         validationMessageEl.textContent = '';
       }
@@ -124,19 +124,18 @@ document.addEventListener('DOMContentLoaded', () => {
   // Save API Key + provider when Save key is clicked
   saveBtn.addEventListener('click', () => {
     const apiToken = apiKeyInput.value ? apiKeyInput.value.trim() : '';
-    const provider = providerSelect.value || '';
-    // Only validate strictly if an explicit provider is selected
-    // If provider is Auto (empty string), allow saving any token
-    if (provider && provider.trim().length) {
-      const validation = validateTokenForProvider(provider, apiToken);
-      if (!validation.ok) {
-        showStatus(validation.message, 3000);
-        return;
-      }
+    const provider = providerSelect.value || 'openrouter'; // Default to openrouter
+    
+    // Validate token for the selected provider
+    const validation = validateTokenForProvider(provider, apiToken);
+    if (!validation.ok) {
+      showStatus(validation.message, 5000);
+      return;
     }
+    
     // Persist token and provider so background.js will pick them up
     chrome.storage.sync.set({ apiToken, provider }, () => {
-      showStatus('API key & provider saved');
+      showStatus('✅ API key & provider saved successfully!', 3000);
       updateDetectionUI();
     });
   });

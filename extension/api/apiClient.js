@@ -410,12 +410,17 @@ export async function callModel(payload = {}, token = '', options = {}) {
   // OpenRouter provider
   if (provider === 'openrouter') {
     // OpenRouter requires authentication for all models (free or paid)
-    // Free models are limited in rate but don't require payment
+    // Free models have limited rate but work with API keys
     const endpoint = 'https://openrouter.ai/api/v1/chat/completions';
     
     // Validate endpoint
     if (!endpoint || typeof endpoint !== 'string' || !endpoint.startsWith('http')) {
       throw new Error('Invalid OpenRouter endpoint: ' + endpoint);
+    }
+    
+    // Check if token is provided
+    if (!token || token.trim() === '' || token === 'YOUR_API_TOKEN_HERE') {
+      throw new Error('OpenRouter requires an API key. Please add your OpenRouter API key in the extension options. Get one free at https://openrouter.ai/keys');
     }
     
     // Build messages: accept either payload.messages or payload.input/prompt
@@ -440,28 +445,21 @@ export async function callModel(payload = {}, token = '', options = {}) {
     const model = payload.model || 'meta-llama/llama-3-8b-instruct';
     
     try {
-      // Build headers (OpenRouter requires auth header with special key or API key)
+      // Build headers (OpenRouter requires auth header with API key)
       const headers = { 
         'Content-Type': 'application/json',
         'HTTP-Referer': 'https://www.yoursite.com', // Required by OpenRouter
-        'X-Title': 'AI Assistant Extension' // Required by OpenRouter
+        'X-Title': 'AI Assistant Extension', // Required by OpenRouter
+        'Authorization': `Bearer ${token}`
       };
-      
-      // OpenRouter requires an API key, but also accepts requests without one for free models
-      // with very limited rate limits. For production, users should provide a key.
-      // Try with the token if provided, otherwise make unauthenticated request (free tier)
-      if (token && token !== 'YOUR_API_TOKEN_HERE' && token.length > 5) {
-        headers.Authorization = `Bearer ${token}`;
-      }
-      // If no valid token, OpenRouter will still accept the request but with free tier limits
       
       // DEBUG: Log exactly what we're sending
       console.log('DEBUG - Building OpenRouter request with:', {
         model,
         hasToken: !!token,
+        tokenStart: token ? token.substring(0, 15) + '...' : 'none',
         headers: Object.keys(headers),
-        messageCount: messages.length,
-        firstMessage: messages[0]?.content?.substring(0, 100) + '...'
+        messageCount: messages.length
       });
       
       const fetchOpts = {
@@ -470,8 +468,8 @@ export async function callModel(payload = {}, token = '', options = {}) {
         body: JSON.stringify({ 
           model: model,
           messages: messages,
-          temperature: typeof payload.temperature === 'number' ? payload.temperature : 0.2,
-          max_tokens: payload.max_tokens || 1024
+          temperature: typeof payload.temperature === 'number' ? payload.temperature : 0.7,
+          max_tokens: payload.maxTokens || payload.max_tokens || 2000
         })
       };
       
@@ -490,7 +488,7 @@ export async function callModel(payload = {}, token = '', options = {}) {
       }
       
       // Log the exact request being made
-      console.log('FINAL OpenRouter request:', JSON.stringify(fetchOpts, null, 2));
+      console.log('OpenRouter request to:', endpoint);
       
       if (options && options.signal) fetchOpts.signal = options.signal;
       const res = await fetchWithTimeout(endpoint, fetchOpts, payload.timeoutMs || 30000);
@@ -503,45 +501,23 @@ export async function callModel(payload = {}, token = '', options = {}) {
         
         // If we got 401, surface an explicit message about auth
         if (res.status === 401) {
-          throw new Error(`OpenRouter endpoint unauthorized (401). Check your OpenRouter API token.`);
+          throw new Error(`OpenRouter API key is invalid or missing. Please add a valid API key in the extension options. Get one at https://openrouter.ai/keys`);
         }
 
-        // If 404 and we sent an Authorization header, retry once without it.
-        // Some OpenRouter API keys are scoped and may not have access to public/free models —
-        // retrying without Authorization lets us use the public endpoint if available.
-        if (res.status === 404 && headers && headers.Authorization) {
-          console.warn('OpenRouter returned 404 while using Authorization header; retrying without Authorization to check public model availability');
-          try {
-            // Clone fetchOpts but remove Authorization header
-            const retryHeaders = { ...headers };
-            delete retryHeaders.Authorization;
-            const retryFetchOpts = { ...fetchOpts, headers: retryHeaders };
-            if (options && options.signal) retryFetchOpts.signal = options.signal;
-            const retryRes = await fetchWithTimeout(endpoint, retryFetchOpts, payload.timeoutMs || 30000);
-            if (!retryRes.ok) {
-              const retryTxt = await retryRes.text().catch(() => '<no body>');
-              if (retryRes.status === 401) throw new Error(`OpenRouter endpoint unauthorized (401). Check your OpenRouter API token.`);
-              if (retryRes.status === 413) throw new Error('OpenRouter endpoint error 413: Request too large. The image or text content is too big for processing.');
-              throw new Error(`OpenRouter endpoint error ${retryRes.status}: ${retryTxt}`);
-            }
-            const retryData = await retryRes.json();
-            // Extract text from retryData
-            let retryText = '';
-            if (retryData?.choices && Array.isArray(retryData.choices) && retryData.choices.length) {
-              const first = retryData.choices[0];
-              if (first.message && typeof first.message.content === 'string') retryText = first.message.content;
-              else if (typeof first.text === 'string') retryText = first.text;
-            }
-            retryText = retryText.trim();
-            return { text: retryText || '', raw: retryData };
-          } catch (retryErr) {
-            console.warn('Retry without Authorization also failed:', retryErr?.message || retryErr);
-            // fall through to throw original 404 below
-          }
+        if (res.status === 402) {
+          throw new Error(`OpenRouter account has insufficient credits. Please add credits at https://openrouter.ai/credits or use a different API key.`);
         }
 
-        if (res.status === 413) throw new Error('OpenRouter endpoint error 413: Request too large. The image or text content is too big for processing.');
-        throw new Error(`OpenRouter endpoint error ${res.status}: ${txt}`);
+        if (res.status === 429) {
+          throw new Error(`OpenRouter rate limit exceeded. Please wait a moment or upgrade your plan at https://openrouter.ai/account`);
+        }
+
+        if (res.status === 413) {
+          throw new Error('OpenRouter request too large. Please reduce the input size.');
+        }
+
+        // For other errors, provide helpful message
+        throw new Error(`OpenRouter error (${res.status}): ${txt.substring(0, 200)}`);
       }
       
       const data = await res.json();

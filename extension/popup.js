@@ -53,6 +53,18 @@ function init() {
     chrome.runtime.openOptionsPage();
   });
 
+  // Setup link in API notice
+  const setupLink = document.getElementById('setupLink');
+  if (setupLink) {
+    setupLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      chrome.runtime.openOptionsPage();
+    });
+  }
+
+  // Check API key status and show notice if needed
+  checkApiKeyStatus();
+
   // Load chat history
   loadChatHistory();
 }
@@ -410,6 +422,25 @@ async function handleImageUpload(event) {
     isProcessing = false;
     event.target.value = '';
   }
+}
+
+// Check API Key Status
+function checkApiKeyStatus() {
+  chrome.storage.sync.get(['apiToken'], (data) => {
+    const apiNotice = document.getElementById('apiNotice');
+    const token = data.apiToken;
+    
+    // Show notice if no token is configured
+    if (!token || token.trim() === '' || token === 'YOUR_API_TOKEN_HERE') {
+      if (apiNotice) {
+        apiNotice.style.display = 'flex';
+      }
+    } else {
+      if (apiNotice) {
+        apiNotice.style.display = 'none';
+      }
+    }
+  });
 }
 
 // Status Messages
